@@ -78,6 +78,7 @@ class InstallerController extends Controller
     {
         $dbInstaller = new DatabaseInstaller();
         $dbInstaller->writeEnvValue('APP_INSTALLED', 'true');
+        file_put_contents(storage_path('install.lock'), 'Installed on ' . now()->toDateTimeString());
 
         $pipeInstaller = new CpanelPipeInstaller();
         $forwardContent = $pipeInstaller->getForwardFileContent('support@yourdomain.com');

@@ -1,0 +1,25 @@
+[2026-03-17 14:35:13] production.ERROR: Command "pest:install" is not defined.
+
+Did you mean one of these?
+    migrate:install
+    pest:dataset
+    pest:test
+    reverb:install
+    sail:install
+    test {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"pest:install\" is not defined.
+
+Did you mean one of these?
+    migrate:install
+    pest:dataset
+    pest:test
+    reverb:install
+    sail:install
+    test at C:/xampp/htdocs/serviceflow/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/xampp/htdocs/serviceflow/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find('pest:install')
+#1 C:/xampp/htdocs/serviceflow/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#2 C:/xampp/htdocs/serviceflow/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#3 C:/xampp/htdocs/serviceflow/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#4 C:/xampp/htdocs/serviceflow/artisan(13): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#5 {main}
+"} 

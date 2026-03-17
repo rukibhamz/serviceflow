@@ -10,7 +10,7 @@ class InstallerMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (env('APP_INSTALLED') === 'true') {
+        if (env('APP_INSTALLED') === 'true' || file_exists(storage_path('install.lock'))) {
             return redirect('/');
         }
 
