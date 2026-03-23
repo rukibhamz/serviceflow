@@ -33,6 +33,15 @@
                                 <span>{{ $comment->created_at->diffForHumans() }} &middot; <em>Internal note</em></span>
                             </div>
                             <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ $comment->body }}</p>
+                            @if($comment->hasMedia('attachments'))
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach($comment->getMedia('attachments') as $media)
+                                        <a href="{{ $media->getUrl() }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm border border-gray-200 hover:bg-gray-50">
+                                            📎 {{ $media->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @else
                         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -41,6 +50,15 @@
                                 <span>{{ $comment->created_at->diffForHumans() }}</span>
                             </div>
                             <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ $comment->body }}</p>
+                            @if($comment->hasMedia('attachments'))
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach($comment->getMedia('attachments') as $media)
+                                        <a href="{{ $media->getUrl() }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-blue-600 shadow-sm border border-gray-200 hover:bg-gray-50">
+                                            📎 {{ $media->name }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endif
                 @endforeach
@@ -56,9 +74,15 @@
                     class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 ></textarea>
                 @error('commentBody') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                <div class="mt-2 flex items-center justify-between">
+                
+                <div class="mt-3">
+                    <input type="file" wire:model="attachments" multiple class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    @error('attachments.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="mt-4 flex items-center justify-between">
                     <label class="flex items-center gap-2 text-sm text-gray-600">
-                        <input type="checkbox" wire:model="isInternal" class="rounded" />
+                        <input type="checkbox" wire:model="isInternal" class="rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                         Internal note (agents only)
                     </label>
                     <button wire:click="addComment" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">

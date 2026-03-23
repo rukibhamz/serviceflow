@@ -28,10 +28,37 @@ class TicketStatusMachine
             );
         }
 
+        $from = $ticket->status;
         $ticket->status = $to;
+
+        // SLA Pause/Resume logic
+        if ($to === 'pending' && $from !== 'pending') {
+            $ticket->slaTimers()->whereNull('stopped_at')->where('breached', false)->get()
+                ->each(function ($timer) {
+                    $timer->pauses()->create([
+                        'paused_at' => now(),
+                        'reason' => 'Ticket moved to pending'
+                    ]);
+                });
+        } elseif ($from === 'pending' && $to !== 'pending') {
+            $ticket->slaTimers()->whereNull('stopped_at')->where('breached', false)->get()
+                ->each(function ($timer) {
+                    $activePause = $timer->pauses()->whereNull('resumed_at')->latest('paused_at')->first();
+                    if ($activePause) {
+                        $now = now();
+                        $activePause->update(['resumed_at' => $now]);
+                        $duration = $activePause->paused_at->diffInMinutes($now);
+                        
+                        $timer->update([
+                            'due_at' => \Carbon\Carbon::parse($timer->due_at)->addMinutes($duration)
+                        ]);
+                    }
+                });
+        }
 
         if ($to === 'closed' && $ticket->closed_at === null) {
             $ticket->closed_at = now();
+            $ticket->slaTimers()->whereNull('stopped_at')->update(['stopped_at' => now()]);
         }
 
         $ticket->save();

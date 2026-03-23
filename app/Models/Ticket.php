@@ -41,6 +41,15 @@ class Ticket extends Model implements HasMedia
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (Ticket $ticket) {
+            if (empty($ticket->ulid)) {
+                $ticket->ulid = (string) \Illuminate\Support\Str::ulid();
+            }
+        });
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

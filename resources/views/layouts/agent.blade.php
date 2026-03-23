@@ -15,6 +15,8 @@
                 <div class="flex items-center gap-6">
                     <span class="text-lg font-bold text-blue-600">ServiceFlow</span>
                     <a href="{{ route('agent.tickets.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Tickets</a>
+                    <a href="{{ route('agent.tickets.kanban') }}" class="text-sm text-gray-600 hover:text-gray-900">Kanban Board</a>
+                    <a href="{{ route('agent.tickets.create') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Create Ticket</a>
                     <a href="{{ route('agent.tickets.triage') }}" class="text-sm text-gray-600 hover:text-gray-900">Triage Queue</a>
                 </div>
                 <div class="text-sm text-gray-500">

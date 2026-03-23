@@ -1,4 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(.*)$ public/$1 [L]
+    RewriteBase /serviceflow/
+
+    # Serve real files and directories directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route everything else through the root index.php shim
+    RewriteRule ^ index.php [L]
 </IfModule>

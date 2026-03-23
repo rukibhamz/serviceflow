@@ -5,11 +5,28 @@ use App\Http\Controllers\PortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $installed = env('APP_INSTALLED') === 'true' || file_exists(storage_path('install.lock'));
+
+    if (! $installed) {
+        return redirect()->route('installer.index');
+    }
+
+    return redirect()->route('login');
 });
+
+Route::get('/login', \App\Livewire\Auth\Login::class)->name('login')->middleware('guest');
+
+Route::post('/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout')->middleware('auth');
 
 Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () {
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
+    Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
+    Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
     Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('agent.tickets.show', compact('ticket')))->name('tickets.show');
     Route::get('/triage', fn () => view('agent.tickets.triage'))->name('tickets.triage');
 

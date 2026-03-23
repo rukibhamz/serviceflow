@@ -9,13 +9,17 @@ use App\Services\Ai\AiAssistService;
 use App\Services\Tickets\TicketStatusMachine;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class TicketResource extends Component
 {
+    use WithFileUploads;
+
     public Ticket $ticket;
 
     public string $commentBody = '';
     public bool $isInternal = false;
+    public $attachments = [];
     public string $newStatus = '';
     public string $newPriority = '';
     public string $newAssigneeId = '';
@@ -37,15 +41,27 @@ class TicketResource extends Component
 
     public function addComment(): void
     {
-        $this->validate(['commentBody' => 'required|string|min:1']);
+        $this->validate([
+            'commentBody' => 'required|string|min:1',
+            'attachments.*' => 'nullable|file|max:10240', // 10MB limit per file
+        ]);
 
-        $this->ticket->comments()->create([
+        $comment = $this->ticket->comments()->create([
             'user_id'     => Auth::id(),
             'body'        => $this->commentBody,
             'is_internal' => $this->isInternal,
         ]);
 
-        $this->reset('commentBody', 'isInternal');
+        if (!empty($this->attachments)) {
+            foreach ($this->attachments as $file) {
+                $comment->addMedia($file->getRealPath())
+                        ->usingName($file->getClientOriginalName())
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('attachments');
+            }
+        }
+
+        $this->reset('commentBody', 'isInternal', 'attachments');
         $this->ticket->refresh();
         session()->flash('success', 'Comment added.');
     }
