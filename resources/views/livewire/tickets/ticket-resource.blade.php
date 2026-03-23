@@ -168,6 +168,53 @@
                     Merge Ticket
                 </button>
             </div>
+
+            {{-- AI Assist --}}
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+                <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">✨ AI Assist</h3>
+
+                @if ($aiLoading)
+                    <p class="text-xs text-indigo-500 animate-pulse">Thinking…</p>
+                @endif
+
+                <div class="space-y-2">
+                    <button wire:click="aiSummarise" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                        Summarise Ticket
+                    </button>
+                    <button wire:click="aiDraft" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                        Draft Reply
+                    </button>
+                    <button wire:click="aiSuggestArticles" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                        Suggest KB Articles
+                    </button>
+                </div>
+
+                @if ($aiSummary)
+                    <div class="mt-3 rounded bg-white border border-indigo-200 p-3 text-xs text-gray-700">
+                        <p class="font-semibold text-indigo-600 mb-1">Summary</p>
+                        {{ $aiSummary }}
+                    </div>
+                @endif
+
+                @if ($aiDraftReply)
+                    <div class="mt-3 rounded bg-white border border-indigo-200 p-3 text-xs text-gray-700">
+                        <p class="font-semibold text-indigo-600 mb-1">Draft Reply</p>
+                        <p class="whitespace-pre-wrap">{{ $aiDraftReply }}</p>
+                        <button wire:click="useAiDraft" class="mt-2 text-xs text-indigo-600 hover:underline">Use this draft →</button>
+                    </div>
+                @endif
+
+                @if (!empty($aiSuggestions))
+                    <div class="mt-3 rounded bg-white border border-indigo-200 p-3 text-xs text-gray-700">
+                        <p class="font-semibold text-indigo-600 mb-1">Suggested Articles</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach ($aiSuggestions as $suggestion)
+                                <li>{{ $suggestion }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 </div>

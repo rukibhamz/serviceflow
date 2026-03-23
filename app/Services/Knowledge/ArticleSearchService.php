@@ -26,31 +26,9 @@ class ArticleSearchService
         ]);
     }
 
-    public function index(KnowledgeArticle $article): void
-    {
-        $indexName = config('tnt.index', 'knowledge_articles.index');
-
-        try {
-            $this->tnt->selectIndex($indexName);
-            $index = $this->tnt->getIndex();
-            $index->updateWithDocument([
-                'id'    => $article->id,
-                'title' => $article->title,
-                'body'  => strip_tags($article->body),
-            ]);
-        } catch (\Exception $e) {
-            // Index may not exist yet — create it
-            $this->createIndex();
-            $this->tnt->selectIndex($indexName);
-            $index = $this->tnt->getIndex();
-            $index->insert([
-                'id'    => $article->id,
-                'title' => $article->title,
-                'body'  => strip_tags($article->body),
-            ]);
-        }
-    }
-
+    /**
+     * Full-text search over published KnowledgeArticle records, returning ranked results.
+     */
     public function search(string $query, int $limit = 10): Collection
     {
         $indexName = config('tnt.index', 'knowledge_articles.index');
@@ -64,6 +42,7 @@ class ArticleSearchService
                 return collect();
             }
 
+            // Preserve TNTSearch ranking order, filter to published only
             return KnowledgeArticle::whereIn('id', $ids)
                 ->where('status', 'published')
                 ->get()
@@ -74,7 +53,40 @@ class ArticleSearchService
         }
     }
 
-    public function deleteFromIndex(KnowledgeArticle $article): void
+    /**
+     * Index a published article into TNTSearch. Only published articles are indexed.
+     */
+    public function indexArticle(KnowledgeArticle $article): void
+    {
+        if ($article->status !== 'published') {
+            return;
+        }
+
+        $indexName = config('tnt.index', 'knowledge_articles.index');
+
+        $document = [
+            'id'    => $article->id,
+            'title' => $article->title,
+            'body'  => strip_tags($article->body),
+        ];
+
+        try {
+            $this->tnt->selectIndex($indexName);
+            $index = $this->tnt->getIndex();
+            $index->update($article->id, $document);
+        } catch (\Exception $e) {
+            // Index may not exist yet — create it and insert
+            $this->createIndex();
+            $this->tnt->selectIndex($indexName);
+            $index = $this->tnt->getIndex();
+            $index->insert($document);
+        }
+    }
+
+    /**
+     * Remove an article from the TNTSearch index.
+     */
+    public function removeFromIndex(KnowledgeArticle $article): void
     {
         $indexName = config('tnt.index', 'knowledge_articles.index');
 
@@ -93,6 +105,8 @@ class ArticleSearchService
         $indexer   = $this->tnt->createIndex($indexName);
         $indexer->setPrimaryKey('id');
         $indexer->setStopWords([]);
-        $indexer->run();
+        // Do not call run() — we insert documents individually via insert/updateWithDocument.
+        // run() is for bulk-loading from a database or filesystem source, and requires
+        // additional config keys (e.g. 'extension') that are not relevant here.
     }
 }

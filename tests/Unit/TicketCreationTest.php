@@ -14,7 +14,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(\Tests\TestCase::class, \Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 $priorities = ['low', 'medium', 'high', 'critical'];
 $types      = ['incident', 'service_request', 'change', 'problem'];
@@ -64,7 +64,7 @@ test('dispatches TicketCreated event on successful creation', function () {
 });
 
 test('throws ValidationException for empty subject', function () {
-    $requester = User::factory()->create();
+    $requester = User::factory()->make(['id' => 1]);
     $action    = new CreateTicketAction;
 
     expect(fn () => $action->execute([
@@ -75,7 +75,7 @@ test('throws ValidationException for empty subject', function () {
 });
 
 test('throws ValidationException for invalid priority', function () {
-    $requester = User::factory()->create();
+    $requester = User::factory()->make(['id' => 1]);
     $action    = new CreateTicketAction;
 
     expect(fn () => $action->execute([
@@ -86,7 +86,7 @@ test('throws ValidationException for invalid priority', function () {
 });
 
 test('throws ValidationException for invalid type', function () {
-    $requester = User::factory()->create();
+    $requester = User::factory()->make(['id' => 1]);
     $action    = new CreateTicketAction;
 
     expect(fn () => $action->execute([

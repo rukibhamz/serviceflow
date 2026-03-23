@@ -5,6 +5,7 @@ namespace App\Livewire\Tickets;
 use App\Actions\Tickets\MergeTicketsAction;
 use App\Models\Ticket;
 use App\Models\TicketComment;
+use App\Services\Ai\AiAssistService;
 use App\Services\Tickets\TicketStatusMachine;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -19,6 +20,12 @@ class TicketResource extends Component
     public string $newPriority = '';
     public string $newAssigneeId = '';
     public string $mergeTargetUlid = '';
+
+    // ── AI Assist ─────────────────────────────────────────────────────────────
+    public ?string $aiSummary     = null;
+    public ?string $aiDraftReply  = null;
+    public array   $aiSuggestions = [];
+    public bool    $aiLoading     = false;
 
     public function mount(Ticket $ticket): void
     {
@@ -94,6 +101,35 @@ class TicketResource extends Component
         app(MergeTicketsAction::class)->execute($target, $this->ticket);
 
         $this->redirect(route('agent.tickets.show', $target->ulid));
+    }
+
+    // ── AI Assist ─────────────────────────────────────────────────────────────
+
+    public function aiSummarise(): void
+    {
+        $this->aiLoading = true;
+        $this->aiSummary = app(AiAssistService::class)->summarise($this->ticket);
+        $this->aiLoading = false;
+    }
+
+    public function aiDraft(): void
+    {
+        $this->aiLoading    = true;
+        $this->aiDraftReply = app(AiAssistService::class)->draftReply($this->ticket);
+        $this->aiLoading    = false;
+    }
+
+    public function aiSuggestArticles(): void
+    {
+        $this->aiLoading    = true;
+        $this->aiSuggestions = app(AiAssistService::class)->suggestArticles($this->ticket);
+        $this->aiLoading    = false;
+    }
+
+    public function useAiDraft(): void
+    {
+        $this->commentBody  = $this->aiDraftReply ?? '';
+        $this->aiDraftReply = null;
     }
 
     public function render()

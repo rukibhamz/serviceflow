@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('ticket_comments', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->foreignId('ticket_id')->constrained('tickets')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->longText('body');
             $table->boolean('is_internal')->default(false);
             $table->boolean('is_system')->default(false);

@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Events\TicketCreated;
 use App\Events\TicketUpdated;
 use App\Models\Ticket;
+use App\Services\Portal\CsatService;
 use Illuminate\Support\Facades\Log;
 
 class TicketObserver
@@ -23,6 +24,9 @@ class TicketObserver
             $ticket->closed_at  = now();
             $ticket->save();
             $ticket->timestamps = true;
+
+            // Send CSAT survey when ticket is closed
+            app(CsatService::class)->sendSurvey($ticket);
         }
     }
 

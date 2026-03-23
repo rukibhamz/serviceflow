@@ -39,13 +39,14 @@ class TicketCommentMail extends Mailable
     {
         $commentMessageId = "ticket-{$this->ticket->ulid}-comment-{$this->comment->id}@serviceflow";
 
-        // Find the last inbound message_id for threading
-        $lastInbound = EmailThread::where('ticket_id', $this->ticket->id)
-            ->where('direction', 'inbound')
-            ->latest()
+        // Find the last outbound message_id for threading (chain outbound mails together)
+        $lastOutbound = EmailThread::where('ticket_id', $this->ticket->id)
+            ->where('direction', 'outbound')
+            ->orderBy('id', 'desc')
             ->value('message_id');
 
-        $inReplyTo = $lastInbound ?? "ticket-{$this->ticket->ulid}@serviceflow";
+        // Fall back to the ticket root message-id (from TicketCreatedMail) if no prior outbound exists
+        $inReplyTo = $lastOutbound ?? "ticket-{$this->ticket->ulid}@serviceflow";
 
         return new Headers(
             messageId: $commentMessageId,

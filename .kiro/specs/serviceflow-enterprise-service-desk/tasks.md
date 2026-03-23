@@ -72,7 +72,7 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### Ticket Management
 
-- [ ] 6. Implement `TicketStatusMachine` and `TicketService`
+- [x] 6. Implement `TicketStatusMachine` and `TicketService`
   - [x] 6.1 Implement `TicketStatusMachine` — enforce valid transitions: `open → in_progress → pending → resolved → closed`, re-open path `resolved/closed → open`
     - Throw `InvalidStatusTransitionException` for illegal moves
     - _Requirements: 2.3_
@@ -83,13 +83,13 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
   - [x] 6.3 Implement `CreateTicketAction` — validate input, persist ticket, fire `TicketCreated` event
     - Enforce: subject non-empty, valid priority, valid type, requester exists
     - _Requirements: 2.1_
-  - [-] 6.4 Write property test for ticket creation invariants
+  - [x] 6.4 Write property test for ticket creation invariants
     - **Property 1: Ticket Creation Invariants**
     - **Validates: Requirements 2.1**
     - Generate arbitrary valid ticket payloads; assert ticket persists with correct fields and `TicketCreated` event is dispatched
   - [x] 6.5 Implement `MergeTicketsAction` — move comments and attachments from source to target, set `merged_into_id`, close source ticket
     - _Requirements: 2.6_
-  - [~] 6.6 Write property test for ticket merge completeness
+  - [x] 6.6 Write property test for ticket merge completeness
     - **Property 12: Ticket Merge Completeness**
     - **Validates: Requirements 2.6**
     - Generate two tickets with random comment counts; after merge assert all comments on target, source status is `closed`, `merged_into_id` set
@@ -109,28 +109,28 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### SLA Engine
 
-- [ ] 9. Implement `SlaService` and `BusinessHoursCalculator`
+- [x] 9. Implement `SlaService` and `BusinessHoursCalculator`
   - [x] 9.1 Implement `BusinessHoursCalculator` — calculate elapsed business minutes between two timestamps given a schedule (weekday hours, excluded holidays)
     - _Requirements: 3.3_
-  - [~] 9.2 Write property test for business hours exclusion
+  - [x] 9.2 Write property test for business hours exclusion
     - **Property 6: Business Hours Exclusion from SLA**
     - **Validates: Requirements 3.3**
     - Generate random timestamp pairs spanning weekends/holidays; assert calculated business minutes never include out-of-hours time
   - [x] 9.3 Implement `SlaService::assignPolicy` — on ticket creation, match ticket priority to `SlaPolicy`, create `SlaTimer` record
     - _Requirements: 3.1_
-  - [~] 9.4 Write property test for SLA assignment on ticket creation
+  - [x] 9.4 Write property test for SLA assignment on ticket creation
     - **Property 3: SLA Assignment on Ticket Creation**
     - **Validates: Requirements 3.1**
     - For any valid ticket creation, assert exactly one `SlaTimer` is created linked to the correct policy
   - [x] 9.5 Implement `SlaService::recordFirstResponse` — stamp `first_response_at` on `SlaTimer` when first agent comment is posted
     - _Requirements: 3.2_
-  - [~] 9.6 Write property test for first response stops SLA timer
+  - [x] 9.6 Write property test for first response stops SLA timer
     - **Property 4: First Response Stops SLA Timer**
     - **Validates: Requirements 3.2**
     - Post first agent comment on any open ticket; assert `first_response_at` is set and subsequent comments do not overwrite it
   - [x] 9.7 Implement `SlaService::checkBreach` — compare elapsed business hours against policy thresholds, set `breached = true` when exceeded
     - _Requirements: 3.4_
-  - [~] 9.8 Write property test for SLA breach detection
+  - [x] 9.8 Write property test for SLA breach detection
     - **Property 5: SLA Breach Detection**
     - **Validates: Requirements 3.4**
     - Generate timers where elapsed time exceeds threshold; assert `breached` flag is set; generate timers within threshold and assert not breached
@@ -143,13 +143,13 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### Email Integration
 
-- [ ] 11. Implement inbound email pipeline
+- [x] 11. Implement inbound email pipeline
   - [x] 11.1 Implement `EmailParser` — parse raw RFC 2822 email into structured DTO (from, subject, body, attachments, message-id, in-reply-to)
     - _Requirements: 4.1_
   - [x] 11.2 Implement `EmailToTicketAction` — if `in-reply-to` matches existing `EmailThread.message_id`, append comment; otherwise create new ticket
     - Store `EmailThread` record for every inbound message
     - _Requirements: 4.1, 4.2_
-  - [~] 11.3 Write property test for inbound email round-trip
+  - [x] 11.3 Write property test for inbound email round-trip
     - **Property 7: Inbound Email Round-Trip**
     - **Validates: Requirements 4.1, 4.2**
     - Generate arbitrary valid RFC 2822 email strings; assert parsing produces correct DTO fields and `EmailToTicketAction` creates or threads correctly
@@ -158,11 +158,11 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
   - [x] 11.5 Implement cPanel pipe script stub (`scripts/pipe.php`) and document `.forward` configuration
     - _Requirements: 4.2_
 
-- [ ] 12. Implement outbound email (`TicketMailer`)
+- [x] 12. Implement outbound email (`TicketMailer`)
   - [x] 12.1 Implement `TicketMailer` — send ticket created, comment added, status changed, and SLA breach notifications using Laravel Mail
     - Include `Message-ID` and `In-Reply-To` headers for threading
     - _Requirements: 4.3_
-  - [~] 12.2 Write property test for outbound email threading
+  - [x] 12.2 Write property test for outbound email threading
     - **Property 8: Outbound Email Threading**
     - **Validates: Requirements 4.3**
     - For any sequence of outbound mails on the same ticket, assert each mail after the first carries `In-Reply-To` matching the previous `Message-ID`
@@ -172,36 +172,36 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### Knowledge Base
 
-- [ ] 14. Implement `ArticleService` and `ArticleSearchService`
+- [x] 14. Implement `ArticleService` and `ArticleSearchService`
   - [x] 14.1 Implement `ArticleService` — CRUD for `KnowledgeArticle` with draft/published status, slug generation, category assignment
     - _Requirements: 5.1, 5.2_
-  - [~] 14.2 Implement `ArticleSearchService` using TNTSearch — index articles on save, full-text search returning ranked results
+  - [x] 14.2 Implement `ArticleSearchService` using TNTSearch — index articles on save, full-text search returning ranked results
     - _Requirements: 5.3_
-  - [~] 14.3 Write property test for knowledge article search round-trip
+  - [x] 14.3 Write property test for knowledge article search round-trip
     - **Property 9: Knowledge Article Search Round-Trip**
     - **Validates: Requirements 5.3**
     - Index a generated set of articles; for each article assert a search on a unique term from its title returns that article in results
-  - [~] 14.4 Build Livewire knowledge base UI — article list, category tree, article editor (Markdown), search bar with live results
+  - [x] 14.4 Build Livewire knowledge base UI — article list, category tree, article editor (Markdown), search bar with live results
     - _Requirements: 5.1, 5.2, 5.3_
 
 #### Self-Service Portal
 
-- [ ] 15. Implement `PortalController` and `ServiceCatalogueService`
-  - [~] 15.1 Implement `PortalController` — public-facing routes for end users: submit ticket, view own tickets, search knowledge base
+- [x] 15. Implement `PortalController` and `ServiceCatalogueService`
+  - [x] 15.1 Implement `PortalController` — public-facing routes for end users: submit ticket, view own tickets, search knowledge base
     - Apply `end_user` permission gate; support guest token access via `GuestTicketToken`
     - _Requirements: 6.1, 6.2_
-  - [~] 15.2 Implement `ServiceCatalogueService` — define service catalogue items with custom fields, map to ticket type/priority on submission
+  - [x] 15.2 Implement `ServiceCatalogueService` — define service catalogue items with custom fields, map to ticket type/priority on submission
     - _Requirements: 6.1_
-  - [~] 15.3 Implement `GuestTicketToken` — generate signed URL token for unauthenticated ticket status lookup
+  - [x] 15.3 Implement `GuestTicketToken` — generate signed URL token for unauthenticated ticket status lookup
     - _Requirements: 6.2_
-  - [~] 15.4 Implement `CsatService` — send CSAT survey email on ticket close, record rating via tokenised URL, enforce one survey per ticket per requester
+  - [x] 15.4 Implement `CsatService` — send CSAT survey email on ticket close, record rating via tokenised URL, enforce one survey per ticket per requester
     - _Requirements: 6.3_
-  - [~] 15.5 Write property test for CSAT survey uniqueness and idempotence
+  - [x] 15.5 Write property test for CSAT survey uniqueness and idempotence
     - **Property 11: CSAT Survey Uniqueness and Idempotence**
     - **Validates: Requirements 6.3**
     - Submit CSAT rating multiple times for the same ticket/requester; assert only one `csat_surveys` record exists and rating reflects last valid submission
 
-- [~] 16. Checkpoint — Self-service portal and knowledge base
+- [x] 16. Checkpoint — Self-service portal and knowledge base
   - Ensure portal ticket submission, guest token lookup, KB search, and CSAT flow work end-to-end. Ask the user if questions arise.
 
 ---
@@ -210,53 +210,53 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### Change & Problem Management
 
-- [~] 17. Implement Change Management module
+- [x] 17. Implement Change Management module
   - Extend `tickets` table with `change_type`, `risk_level`, `cab_approval_required`, `scheduled_at` columns via migration
   - Implement `ChangeApprovalWorkflow` — route change tickets through CAB approval state (`pending_approval → approved/rejected`)
   - Add Livewire change calendar view
   - _Requirements: 7.1_
 
-- [~] 18. Implement Problem Management module
+- [x] 18. Implement Problem Management module
   - Add `problem_id` FK on `tickets` for linking incidents to problems
   - Implement `ProblemService` — aggregate linked incidents, track root cause, known error status
   - _Requirements: 7.2_
 
 #### Automation Engine
 
-- [ ] 19. Implement `AutomationEngine` core
-  - [~] 19.1 Implement `TriggerRegistry` — register event-based triggers (`ticket.created`, `ticket.updated`, `comment.added`, `sla.breached`)
+- [x] 19. Implement `AutomationEngine` core
+  - [x] 19.1 Implement `TriggerRegistry` — register event-based triggers (`ticket.created`, `ticket.updated`, `comment.added`, `sla.breached`)
     - _Requirements: 8.1_
-  - [~] 19.2 Implement `ConditionEvaluator` — evaluate JSON condition trees (field comparisons, AND/OR logic) against a ticket context object
+  - [x] 19.2 Implement `ConditionEvaluator` — evaluate JSON condition trees (field comparisons, AND/OR logic) against a ticket context object
     - _Requirements: 8.2_
-  - [~] 19.3 Write property test for automation condition fidelity
+  - [x] 19.3 Write property test for automation condition fidelity
     - **Property 10: Automation Condition Fidelity**
     - **Validates: Requirements 8.2**
     - Generate random condition trees and matching/non-matching ticket contexts; assert evaluator returns true iff context satisfies all conditions
-  - [~] 19.4 Implement `ActionExecutor` — execute automation actions: assign ticket, change status, add comment, send notification, trigger webhook
+  - [x] 19.4 Implement `ActionExecutor` — execute automation actions: assign ticket, change status, add comment, send notification, trigger webhook
     - _Requirements: 8.3_
-  - [~] 19.5 Wire `AutomationEngine` into event listeners — on each registered trigger event, load active automations, evaluate conditions, execute matching actions, log to `automation_logs`
+  - [x] 19.5 Wire `AutomationEngine` into event listeners — on each registered trigger event, load active automations, evaluate conditions, execute matching actions, log to `automation_logs`
     - _Requirements: 8.1, 8.2, 8.3_
-  - [~] 19.6 Build Livewire automation builder UI — visual rule editor for triggers, conditions, and actions
+  - [x] 19.6 Build Livewire automation builder UI — visual rule editor for triggers, conditions, and actions
     - _Requirements: 8.4_
 
-- [~] 20. Checkpoint — Automation engine
+- [x] 20. Checkpoint — Automation engine
   - Ensure automations trigger correctly on events, conditions evaluate accurately, actions execute and log. Ask the user if questions arise.
 
 #### IT Asset Management
 
-- [ ] 21. Implement `AssetService` and `AssetImporter`
-  - [~] 21.1 Implement `AssetService` — CRUD for `Asset` model, assign/unassign to users, track status transitions
+- [x] 21. Implement `AssetService` and `AssetImporter`
+  - [x] 21.1 Implement `AssetService` — CRUD for `Asset` model, assign/unassign to users, track status transitions
     - _Requirements: 9.1, 9.2_
-  - [~] 21.2 Implement `AssetImporter` — bulk import assets from CSV using `maatwebsite/excel`, validate rows, report errors
+  - [x] 21.2 Implement `AssetImporter` — bulk import assets from CSV using `maatwebsite/excel`, validate rows, report errors
     - _Requirements: 9.3_
-  - [~] 21.3 Write property test for asset assignment round-trip
+  - [x] 21.3 Write property test for asset assignment round-trip
     - **Property 13: Asset Assignment Round-Trip**
     - **Validates: Requirements 9.2**
     - Assign and unassign assets to random users; assert `assigned_to` reflects current state and activity log records each change
-  - [~] 21.4 Build Livewire asset management UI — asset list, detail view, assignment panel, import wizard
+  - [x] 21.4 Build Livewire asset management UI — asset list, detail view, assignment panel, import wizard
     - _Requirements: 9.1, 9.2, 9.3_
 
-- [~] 22. Checkpoint — Asset management
+- [x] 22. Checkpoint — Asset management
   - Ensure asset CRUD, CSV import, and assignment tracking work correctly. Ask the user if questions arise.
 
 ---
@@ -265,54 +265,54 @@ Incremental implementation of ServiceFlow across three phases. Each phase builds
 
 #### Reporting & Analytics
 
-- [ ] 23. Implement `ReportBuilder` and `ReportExporter`
-  - [~] 23.1 Implement `ReportBuilder` — query builder for standard reports: ticket volume, SLA compliance, agent performance, CSAT scores, asset inventory
+- [x] 23. Implement `ReportBuilder` and `ReportExporter`
+  - [x] 23.1 Implement `ReportBuilder` — query builder for standard reports: ticket volume, SLA compliance, agent performance, CSAT scores, asset inventory
     - _Requirements: 10.1, 10.2_
-  - [~] 23.2 Implement `ReportExporter` — export report results to PDF (`barryvdh/laravel-dompdf`) and Excel (`maatwebsite/excel`)
+  - [x] 23.2 Implement `ReportExporter` — export report results to PDF (`barryvdh/laravel-dompdf`) and Excel (`maatwebsite/excel`)
     - _Requirements: 10.3_
-  - [~] 23.3 Write property test for report export validity
+  - [x] 23.3 Write property test for report export validity
     - **Property 14: Report Export Validity**
     - **Validates: Requirements 10.3**
     - Generate datasets of known size; export to PDF and Excel; assert exported row count matches input dataset count and no export throws an exception
-  - [~] 23.4 Build `DashboardWidget` Livewire components — real-time counters (open tickets, SLA breaches, unassigned), chart widgets using Chart.js
+  - [x] 23.4 Build `DashboardWidget` Livewire components — real-time counters (open tickets, SLA breaches, unassigned), chart widgets using Chart.js
     - _Requirements: 10.1_
 
-- [~] 24. Implement AI Assist (Phase 3)
+- [x] 24. Implement AI Assist (Phase 3)
   - Implement `AiAssistService` — integrate configurable LLM API (OpenAI-compatible) for ticket summarisation, suggested KB articles, and draft reply generation
   - Add AI assist panel to `TicketResource` Livewire component
   - _Requirements: 11.1, 11.2_
 
 #### Multi-Tenancy
 
-- [ ] 25. Implement multi-tenancy layer
-  - [~] 25.1 Implement `TenantResolver` — resolve tenant from subdomain or path prefix, load tenant config
+- [x] 25. Implement multi-tenancy layer
+  - [x] 25.1 Implement `TenantResolver` — resolve tenant from subdomain or path prefix, load tenant config
     - _Requirements: 12.1_
-  - [~] 25.2 Implement `TenantScope` — global Eloquent scope applying `tenant_id` filter to all tenant-scoped models
+  - [x] 25.2 Implement `TenantScope` — global Eloquent scope applying `tenant_id` filter to all tenant-scoped models
     - Add `tenant_id` column to all core tables via migration
     - _Requirements: 12.2_
-  - [~] 25.3 Implement `TenantProvisioner` — create tenant record, run tenant-scoped seeders, provision subdomain config
+  - [x] 25.3 Implement `TenantProvisioner` — create tenant record, run tenant-scoped seeders, provision subdomain config
     - _Requirements: 12.3_
-  - [~] 25.4 Build MSP/hosting provider admin panel — tenant list, provision new tenant, suspend/activate tenant
+  - [x] 25.4 Build MSP/hosting provider admin panel — tenant list, provision new tenant, suspend/activate tenant
     - _Requirements: 12.4_
 
-- [~] 26. Checkpoint — Multi-tenancy
+- [x] 26. Checkpoint — Multi-tenancy
   - Ensure tenant isolation is enforced at the query level, provisioning creates a usable tenant, and the admin panel lists tenants correctly. Ask the user if questions arise.
 
 ---
 
 ### Cross-Cutting Concerns
 
-- [~] 27. Implement Laravel Reverb WebSocket integration
+- [x] 27. Implement Laravel Reverb WebSocket integration
   - Broadcast `TicketUpdated`, `CommentAdded`, `SlaBreached` events over Reverb channels
   - Subscribe in Livewire components for real-time UI updates without page refresh
   - _Requirements: 2.5, 3.5_
 
-- [~] 28. Implement backup and health monitoring
+- [x] 28. Implement backup and health monitoring
   - Configure `spatie/laravel-backup` for daily database + storage backup with configurable destination
   - Implement `/health` endpoint returning JSON status of DB, queue, cache, and disk
   - _Requirements: Platform operations_
 
-- [~] 29. Final checkpoint — Full test suite and static analysis
+- [x] 29. Final checkpoint — Full test suite and static analysis
   - Run PHPUnit feature and unit test suite; assert all tests pass
   - Run Pest PHP property-based tests (100 iterations each for all 14 properties)
   - Run PHPStan at level 8; resolve all reported issues

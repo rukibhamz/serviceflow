@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::job(new SlaEscalationJob)->everyMinute();
+
+// Daily database + storage backup via spatie/laravel-backup
+Schedule::command('backup:run')->dailyAt('02:00');
+Schedule::command('backup:clean')->dailyAt('01:00');

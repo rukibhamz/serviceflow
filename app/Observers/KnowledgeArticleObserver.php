@@ -11,11 +11,12 @@ class KnowledgeArticleObserver
 
     public function saved(KnowledgeArticle $article): void
     {
-        $this->searchService->index($article);
+        // Only index published articles; non-published are skipped inside indexArticle
+        $this->searchService->indexArticle($article);
     }
 
     public function deleted(KnowledgeArticle $article): void
     {
-        $this->searchService->deleteFromIndex($article);
+        $this->searchService->removeFromIndex($article);
     }
 }

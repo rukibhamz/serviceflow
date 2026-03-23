@@ -29,6 +29,11 @@ class ArticleEditor extends Component
 
     public function save(ArticleService $service): void
     {
+        $this->validate([
+            'title' => 'required|min:3',
+            'body'  => 'required|min:10',
+        ]);
+
         $data = [
             'title'       => $this->title,
             'body'        => $this->body,
