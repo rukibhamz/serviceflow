@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\Installer\CpanelPipeInstaller;
 use App\Services\Installer\DatabaseInstaller;
 use App\Services\Installer\EnvironmentChecker;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -25,6 +26,26 @@ class InstallerController extends Controller
     public function database(): View
     {
         return view('installer.database');
+    }
+
+    public function testDatabase(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'connection' => ['required', 'in:mysql,pgsql'],
+            'host'       => ['required', 'string'],
+            'port'       => ['required', 'numeric'],
+            'database'   => ['required', 'string'],
+            'username'   => ['required', 'string'],
+            'password'   => ['nullable', 'string'],
+        ]);
+
+        $installer = new DatabaseInstaller();
+
+        if ($installer->testConnection($validated)) {
+            return response()->json(['success' => true, 'message' => 'Connection successful.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Could not connect. Check your credentials.'], 422);
     }
 
     public function storeDatabase(Request $request): RedirectResponse

@@ -30,6 +30,7 @@ class TicketResource extends Component
     public ?string $aiDraftReply  = null;
     public array   $aiSuggestions = [];
     public bool    $aiLoading     = false;
+    public array   $otherViewers  = [];
 
     public function mount(Ticket $ticket): void
     {
@@ -37,7 +38,51 @@ class TicketResource extends Component
         $this->newStatus = $ticket->status;
         $this->newPriority = $ticket->priority;
         $this->newAssigneeId = (string) ($ticket->assignee_id ?? '');
+        $this->keepAlive();
     }
+
+    public function keepAlive(): void
+    {
+        if (Auth::check()) {
+            $key = "ticket_viewing_{$this->ticket->id}_" . Auth::id();
+            \Illuminate\Support\Facades\Cache::put($key, Auth::user()->name, 60);
+        }
+
+        $this->fetchOtherViewers();
+    }
+
+    protected function fetchOtherViewers(): void
+    {
+        $prefix = "ticket_viewing_{$this->ticket->id}_";
+        $this->otherViewers = [];
+
+        // This is a bit inefficient for high traffic, but works for internal ITSM
+        // Better: Use Redis sets or a database table. For now, we'll use a simple cache pattern.
+        // Since we can't easily glob cache keys in some drivers, we'll use a registry key.
+        $registryKey = "ticket_viewers_registry_{$this->ticket->id}";
+        $registry = \Illuminate\Support\Facades\Cache::get($registryKey, []);
+        
+        $now = now()->timestamp;
+        $activeRegistry = [];
+        
+        foreach ($registry as $uid => $data) {
+            if ($data['expires'] > $now) {
+                if ($uid != Auth::id()) {
+                    $this->otherViewers[] = $data['name'];
+                }
+                $activeRegistry[$uid] = $data;
+            }
+        }
+
+        // Add self to registry
+        $activeRegistry[Auth::id()] = [
+            'name' => Auth::user()->name,
+            'expires' => now()->addSeconds(65)->timestamp
+        ];
+
+        \Illuminate\Support\Facades\Cache::put($registryKey, $activeRegistry, 120);
+    }
+
 
     public function addComment(): void
     {
@@ -147,6 +192,18 @@ class TicketResource extends Component
         $this->commentBody  = $this->aiDraftReply ?? '';
         $this->aiDraftReply = null;
     }
+
+    public function toggleSubscription(): void
+    {
+        $service = app(\App\Services\Tickets\TicketSubscriptionService::class);
+        if ($this->ticket->watchers()->where('user_id', Auth::id())->exists()) {
+            $service->unsubscribe($this->ticket, Auth::id());
+        } else {
+            $service->subscribe($this->ticket, Auth::id());
+        }
+        $this->ticket->refresh();
+    }
+
 
     public function render()
     {

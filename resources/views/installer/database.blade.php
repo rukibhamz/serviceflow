@@ -57,10 +57,52 @@
 
     <div class="flex justify-between pt-2">
         <a href="{{ route('installer.index') }}" class="text-sm text-gray-500 hover:underline self-center">← Back</a>
-        <button type="submit"
-                class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">
-            Test &amp; Install →
-        </button>
+        <div class="flex items-center gap-3">
+            <button type="button" id="test-btn"
+                    class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Test Connection
+            </button>
+            <button type="submit"
+                    class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">
+                Install →
+            </button>
+        </div>
     </div>
+
+    <div id="test-result" class="hidden mt-3 p-3 rounded-lg text-sm"></div>
 </form>
+
+<script>
+document.getElementById('test-btn').addEventListener('click', async function () {
+    const btn = this;
+    const result = document.getElementById('test-result');
+    const form = btn.closest('form');
+
+    btn.disabled = true;
+    btn.textContent = 'Testing…';
+    result.className = 'hidden mt-3 p-3 rounded-lg text-sm';
+
+    const data = new FormData(form);
+
+    try {
+        const res = await fetch('{{ route('installer.database.test') }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': data.get('_token'), 'Accept': 'application/json' },
+            body: data,
+        });
+        const json = await res.json();
+
+        result.textContent = json.message;
+        result.className = res.ok
+            ? 'mt-3 p-3 rounded-lg text-sm bg-green-50 border border-green-200 text-green-700'
+            : 'mt-3 p-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700';
+    } catch (e) {
+        result.textContent = 'Unexpected error. Please try again.';
+        result.className = 'mt-3 p-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Test Connection';
+    }
+});
+</script>
 @endsection

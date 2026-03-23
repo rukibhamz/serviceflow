@@ -29,10 +29,10 @@ class TicketKanban extends Component
         $ticketsByStatus = [];
         $allTickets = Ticket::with(['requester', 'assignee'])
             ->whereIn('status', $statuses)
-            ->where(function($query) {
+            ->where(fn($query) => 
                 $query->where('status', '!=', 'closed')
-                      ->orWhere('closed_at', '>=', now()->subDays(3)); // Show only recently closed items
-            })
+                      ->orWhere('closed_at', '>=', now()->subDays(3))
+            )
             ->orderBy('created_at', 'desc')
             ->get();
             

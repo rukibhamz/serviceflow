@@ -4,6 +4,7 @@ use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\PortalController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::get('/', function () {
     $installed = env('APP_INSTALLED') === 'true' || file_exists(storage_path('install.lock'));
 
@@ -22,6 +23,12 @@ Route::post('/logout', function () {
     request()->session()->regenerateToken();
     return redirect('/');
 })->name('logout')->middleware('auth');
+
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' => 'admin.'], function () {
+    Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
+    Route::get('/teams', \App\Livewire\Admin\TeamManager::class)->name('teams');
+});
+
 
 Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () {
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
@@ -45,7 +52,7 @@ Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () 
 Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/kb/search', [PortalController::class, 'searchKb'])->name('kb.search');
 
-    Route::middleware(['auth'])->group(function () {
+    Route::group(['middleware' => 'auth'], function () {
         Route::get('/', [PortalController::class, 'index'])->name('index');
         Route::get('/tickets', [PortalController::class, 'tickets'])->name('tickets.index');
         Route::get('/tickets/create', [PortalController::class, 'createTicket'])->name('tickets.create');
@@ -69,6 +76,7 @@ Route::prefix('portal/csat')->name('portal.csat.')->group(function () {
 Route::prefix('install')->middleware(\App\Http\Middleware\InstallerMiddleware::class)->group(function () {
     Route::get('/', [InstallerController::class, 'index'])->name('installer.index');
     Route::get('/database', [InstallerController::class, 'database'])->name('installer.database');
+    Route::post('/database/test', [InstallerController::class, 'testDatabase'])->name('installer.database.test');
     Route::post('/database', [InstallerController::class, 'storeDatabase'])->name('installer.database.store');
     Route::get('/account', [InstallerController::class, 'account'])->name('installer.account');
     Route::post('/account', [InstallerController::class, 'storeAccount'])->name('installer.account.store');

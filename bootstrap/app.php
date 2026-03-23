@@ -21,5 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+        $exceptions->report(function (\Throwable $e) {
+            file_put_contents(base_path('_internal_storage/logs/405_debug.log'), '[' . date('Y-m-d H:i:s') . '] Exception: ' . get_class($e) . ' - ' . $e->getMessage() . ' | ' . request()->method() . ' ' . request()->fullUrl() . PHP_EOL, FILE_APPEND);
+        });
+    })
+    ->create()
+    ->usePublicPath(base_path())
+    ->useStoragePath(base_path('_internal_storage'));
+

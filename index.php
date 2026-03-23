@@ -1,12 +1,16 @@
 <?php
 
-/**
- * XAMPP subdirectory shim.
- * Forwards all requests to public/index.php while keeping paths correct.
- */
+use Illuminate\Http\Request;
 
-// Point Laravel's path resolution to the public directory
-$_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/public/index.php';
-$_SERVER['SCRIPT_NAME']     = str_replace('/index.php', '/public/index.php', $_SERVER['SCRIPT_NAME'] ?? '/index.php');
+define('LARAVEL_START', microtime(true));
 
-require __DIR__ . '/public/index.php';
+require __DIR__.'/vendor/autoload.php';
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/_internal_storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/bootstrap/app.php')
+    ->handleRequest(Illuminate\Http\Request::capture());

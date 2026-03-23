@@ -1,4 +1,14 @@
-<div>
+<div wire:poll.30s="keepAlive">
+    {{-- Collision Detection Banner --}}
+    @if(!empty($otherViewers))
+        <div class="mb-4 flex items-center gap-2 rounded-lg bg-yellow-50 px-4 py-2 border border-yellow-200">
+            <span class="flex h-2 w-2 rounded-full bg-yellow-400 animate-ping"></span>
+            <p class="text-sm text-yellow-800">
+                <strong>Warning:</strong> {{ implode(', ', $otherViewers) }} {{ count($otherViewers) > 1 ? 'are' : 'is' }} also viewing this ticket.
+            </p>
+        </div>
+    @endif
+
     {{-- Flash messages --}}
     @if(session('success'))
         <div class="mb-4 rounded bg-green-100 px-4 py-2 text-sm text-green-800">{{ session('success') }}</div>
@@ -157,6 +167,28 @@
                 <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Team</h3>
                 <p class="text-sm text-gray-700">{{ $ticket->team?->name ?? '—' }}</p>
             </div>
+
+            {{-- Watchers --}}
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Watchers</h3>
+                    <button wire:click="toggleSubscription" class="text-xs {{ $ticket->watchers->contains(Auth::id()) ? 'text-red-600' : 'text-blue-600' }} hover:underline">
+                        {{ $ticket->watchers->contains(Auth::id()) ? 'Unwatch' : 'Watch' }}
+                    </button>
+                </div>
+                @if($ticket->watchers->isNotEmpty())
+                    <div class="flex flex-wrap gap-1">
+                        @foreach($ticket->watchers as $watcher)
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600" title="{{ $watcher->name }}">
+                                {{ collect(explode(' ', $watcher->name))->map(fn($n) => $n[0])->take(2)->join('') }}
+                            </span>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-xs text-gray-400 italic">No watchers</p>
+                @endif
+            </div>
+
 
             {{-- SLA --}}
             @if($ticket->slaTimers->isNotEmpty())

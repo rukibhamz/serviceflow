@@ -1,0 +1,1 @@
+[2026-03-23 11:36:17] Exception: Illuminate\View\ViewException - Vite manifest not found at: C:\xampp\htdocs\serviceflow\build/manifest.json (View: C:\xampp\htdocs\serviceflow\resources\views\components\layouts\auth.blade.php) (View: C:\xampp\htdocs\serviceflow\resources\views\components\layouts\auth.blade.php) | GET http://localhost/serviceflow/login

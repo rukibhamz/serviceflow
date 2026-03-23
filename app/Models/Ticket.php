@@ -87,10 +87,12 @@ class Ticket extends Model implements HasMedia
         return $this->hasMany(TicketComment::class);
     }
 
+
     public function emailThreads(): HasMany
     {
         return $this->hasMany(EmailThread::class);
     }
+
 
     public function watchers(): BelongsToMany
     {

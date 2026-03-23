@@ -37,12 +37,14 @@ class CreateTicket extends Component
             'description' => $this->description,
             'priority' => $this->priority,
             'type' => $this->type,
-            'requester_id' => $this->requester_id,
+            'requester_id' => $this->requester_id ?: Auth::id(),
             'status' => 'open',
             'source' => 'web',
         ]);
 
         app(\App\Services\Sla\SlaService::class)->assignPolicy($ticket);
+        app(\App\Services\Tickets\TicketAssignmentService::class)->autoAssign($ticket);
+
 
         session()->flash('message', 'Ticket created successfully.');
 
