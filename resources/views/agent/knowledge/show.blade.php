@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="mb-4">
-        <a href="{{ route('knowledge.index') }}" class="text-sm text-blue-600 hover:underline">&larr; Back to Knowledge Base</a>
+        <a href="{{ route('agent.knowledge.index') }}" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to KB</a>
     </div>
 
     <article class="mx-auto max-w-3xl">

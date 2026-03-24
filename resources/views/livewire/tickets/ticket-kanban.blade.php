@@ -71,7 +71,6 @@
 
     {{-- Require Alpine.js to be globally accessible if not already setup appropriately --}}
     @push('scripts')
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('kanbanBoard', () => ({

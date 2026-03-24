@@ -3,7 +3,10 @@
 @section('title', 'Submit a Ticket')
 
 @section('content')
-    <a href="{{ route('portal.index') }}" class="mb-4 inline-block text-sm text-blue-600 hover:underline">← Portal</a>
+    <a href="{{ route('portal.index') }}" class="mb-4 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to Dashboard
+    </a>
 
     <h1 class="mb-6 text-xl font-bold">Submit a Support Ticket</h1>
 

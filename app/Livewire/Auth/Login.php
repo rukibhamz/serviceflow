@@ -27,7 +27,13 @@ class Login extends Component
 
         session()->regenerate();
 
-        $this->redirect(route('agent.tickets.index'), navigate: true);
+        $user = Auth::user();
+
+        if ($user->hasRole('admin') || $user->hasRole('agent') || $user->role === 'admin' || $user->role === 'agent') {
+            $this->redirect(route('agent.tickets.index'), navigate: true);
+        } else {
+            $this->redirect(route('portal.index'), navigate: true);
+        }
     }
 
     public function render()

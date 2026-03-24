@@ -7,6 +7,7 @@ use App\Models\CsatSurvey;
 use App\Models\SlaTimer;
 use App\Models\Ticket;
 use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,7 +25,7 @@ class ReportBuilder
      *
      * @return array{by_status: Collection, by_priority: Collection, by_type: Collection, total: int}
      */
-    public function ticketVolume(?Carbon $from = null, ?Carbon $to = null): array
+    public function ticketVolume(?CarbonInterface $from = null, ?CarbonInterface $to = null): array
     {
         $base = Ticket::query()
             ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
@@ -45,7 +46,7 @@ class ReportBuilder
      *
      * @return array{total: int, breached: int, compliant: int, compliance_rate: float}
      */
-    public function slaCompliance(?Carbon $from = null, ?Carbon $to = null): array
+    public function slaCompliance(?CarbonInterface $from = null, ?CarbonInterface $to = null): array
     {
         $base = SlaTimer::query()
             ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
@@ -70,7 +71,7 @@ class ReportBuilder
      *
      * @return Collection<int, object{agent_id: int, name: string, assigned: int, resolved: int, avg_resolution_minutes: float}>
      */
-    public function agentPerformance(?Carbon $from = null, ?Carbon $to = null): Collection
+    public function agentPerformance(?CarbonInterface $from = null, ?CarbonInterface $to = null): Collection
     {
         return Ticket::query()
             ->join('users', 'users.id', '=', 'tickets.assignee_id')
@@ -98,7 +99,7 @@ class ReportBuilder
      *
      * @return array{average: float, response_rate: float, total_sent: int, total_responded: int, distribution: Collection}
      */
-    public function csatScores(?Carbon $from = null, ?Carbon $to = null): array
+    public function csatScores(?CarbonInterface $from = null, ?CarbonInterface $to = null): array
     {
         $base = CsatSurvey::query()
             ->when($from, fn ($q) => $q->where('sent_at', '>=', $from))

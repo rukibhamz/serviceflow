@@ -26,26 +26,57 @@ class DashboardWidgets extends Component
         $this->refresh();
     }
 
+    public string $mttr = '0h';
+    public array $productivityData = [];
+
     #[On('echo:tickets,TicketUpdated')]
     #[On('echo:tickets,SlaBreached')]
     public function refresh(): void
     {
+        $reportBuilder = app(ReportBuilder::class);
         $this->counters = $this->buildCounters();
         $this->volumeChart = $this->buildVolumeChart();
         $this->csatChart   = $this->buildCsatChart();
+        
+        $this->mttr = $this->calculateMyMttr($reportBuilder);
+        $this->productivityData = $this->buildProductivityData($reportBuilder);
     }
 
     private function buildCounters(): array
     {
+        $agentId = auth()->id();
         return [
-            'open'       => Ticket::whereNotIn('status', ['resolved', 'closed'])->count(),
+            'open'       => Ticket::where('assignee_id', $agentId)->whereNotIn('status', ['resolved', 'closed'])->count(),
             'unassigned' => Ticket::whereNull('assignee_id')->whereNotIn('status', ['resolved', 'closed'])->count(),
             'breached'   => SlaTimer::where('breached', true)
-                ->whereHas('ticket', fn ($q) => $q->whereNotIn('status', ['resolved', 'closed']))
+                ->whereHas('ticket', fn ($q) => $q->where('assignee_id', $agentId)->whereNotIn('status', ['resolved', 'closed']))
                 ->count(),
-            'resolved_today' => Ticket::whereIn('status', ['resolved', 'closed'])
+            'resolved_today' => Ticket::where('assignee_id', $agentId)->whereIn('status', ['resolved', 'closed'])
                 ->whereDate('closed_at', today())
                 ->count(),
+        ];
+    }
+
+    private function calculateMyMttr(ReportBuilder $builder): string
+    {
+        $performance = $builder->agentPerformance(now()->subDays(30));
+        $myPerf = $performance->firstWhere('assignee_id', auth()->id());
+        
+        $avgMinutes = $myPerf->avg_resolution_minutes ?? 0;
+        if ($avgMinutes == 0) return '0h';
+        
+        $hours = floor($avgMinutes / 60);
+        $mins  = $avgMinutes % 60;
+        
+        return $hours > 0 ? "{$hours}h {$mins}m" : "{$mins}m";
+    }
+
+    private function buildProductivityData(ReportBuilder $builder): array
+    {
+        $performance = $builder->agentPerformance(now()->subDays(30));
+        return [
+            'labels' => $performance->pluck('name')->take(5)->toArray(),
+            'data'   => $performance->pluck('resolved')->take(5)->toArray(),
         ];
     }
 

@@ -53,7 +53,7 @@
         {{-- Article Cards --}}
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @forelse($articles as $article)
-                <a href="{{ route('knowledge.show', $article->slug) }}"
+                <a href="{{ route('agent.knowledge.show', $article->slug) }}"
                    class="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
                     <h3 class="mb-1 font-semibold text-gray-900 line-clamp-2">{{ $article->title }}</h3>
                     @if($article->category)

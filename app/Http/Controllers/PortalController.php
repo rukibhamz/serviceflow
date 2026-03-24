@@ -98,26 +98,33 @@ class PortalController extends Controller
     }
 
     /**
-     * Search knowledge base — returns JSON results for live search.
+     * Search knowledge base — returns JSON results for live search (AJAX).
      */
     public function searchKb(Request $request)
     {
         $query = $request->string('q')->trim()->toString();
 
-        if ($query === '') {
-            return response()->json(['results' => []]);
+        if ($request->wantsJson() || $request->ajax()) {
+            if ($query === '') {
+                return response()->json(['results' => []]);
+            }
+
+            $articles = $this->articleSearchService->search($query, 10);
+
+            $results = $articles->map(fn ($article) => [
+                'id'    => $article->id,
+                'title' => $article->title,
+                'slug'  => $article->slug,
+                'url'   => route('agent.knowledge.show', $article->slug),
+            ]);
+
+            return response()->json(['results' => $results]);
         }
 
-        $articles = $this->articleSearchService->search($query, 10);
+        // HTML page — search and render results
+        $articles = $query !== '' ? $this->articleSearchService->search($query, 20) : collect();
 
-        $results = $articles->map(fn ($article) => [
-            'id'    => $article->id,
-            'title' => $article->title,
-            'slug'  => $article->slug,
-            'url'   => route('agent.knowledge.show', $article->slug),
-        ]);
-
-        return response()->json(['results' => $results]);
+        return view('portal.kb.search', compact('query', 'articles'));
     }
 
     // ── Service Catalogue ─────────────────────────────────────────────────────

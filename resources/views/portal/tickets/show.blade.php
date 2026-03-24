@@ -3,7 +3,14 @@
 @section('title', $ticket->subject)
 
 @section('content')
-    <a href="{{ route('portal.tickets.index') }}" class="mb-4 inline-block text-sm text-blue-600 hover:underline">← My Tickets</a>
+    <div class="mb-4 flex items-center gap-3">
+        <a href="{{ route('portal.index') }}" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <span class="text-gray-300">/</span>
+        <a href="{{ route('portal.tickets.index') }}" class="text-sm text-blue-600 hover:underline">My Tickets</a>
+    </div>
 
     <div class="rounded border border-gray-200 bg-white p-6">
         <div class="mb-4 flex items-start justify-between">

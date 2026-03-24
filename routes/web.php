@@ -6,18 +6,24 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-    $installed = env('APP_INSTALLED') === 'true' || file_exists(storage_path('install.lock'));
-
-    if (! $installed) {
-        return redirect()->route('installer.index');
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user->hasRole('admin') || $user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->hasRole('agent') || $user->role === 'agent') {
+            return redirect()->route('agent.dashboard');
+        }
+        return redirect()->route('portal.index');
     }
-
     return redirect()->route('login');
 });
 
 Route::get('/login', \App\Livewire\Auth\Login::class)->name('login')->middleware('guest');
 
-Route::post('/logout', function () {
+Route::post('/login', [App\Http\Controllers\AuthController::class, 'store'])->name('login.store')->middleware('guest');
+
+Route::match(['GET', 'POST'], '/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
@@ -25,12 +31,14 @@ Route::post('/logout', function () {
 })->name('logout')->middleware('auth');
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' => 'admin.'], function () {
+    Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
     Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
     Route::get('/teams', \App\Livewire\Admin\TeamManager::class)->name('teams');
 });
 
 
 Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () {
+    Route::get('/dashboard', fn () => view('agent.dashboard'))->name('dashboard');
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
     Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
@@ -43,9 +51,21 @@ Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () 
     Route::get('/knowledge/{article:slug}', fn (\App\Models\KnowledgeArticle $article) => view('agent.knowledge.show', compact('article')))->name('knowledge.show');
     Route::post('/knowledge/{article:slug}/vote', function (\App\Models\KnowledgeArticle $article, \Illuminate\Http\Request $request) {
         app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
-
         return back();
     })->name('knowledge.vote');
+
+    // ITSM stubs
+    Route::get('/changes', fn () => view('agent.itsm.changes'))->name('changes.index');
+    Route::get('/problems', fn () => view('agent.itsm.problems'))->name('problems.index');
+    Route::get('/assets', fn () => view('agent.itsm.assets'))->name('assets.index');
+
+    // Automation & Reports stubs
+    Route::get('/automation', fn () => view('agent.automation.index'))->name('automation.index');
+    Route::get('/reports', fn () => view('agent.reports.index'))->name('reports.index');
+
+    // Settings & Profile stubs
+    Route::get('/settings', fn () => view('agent.settings.index'))->name('settings.index');
+    Route::get('/profile', fn () => view('agent.settings.profile'))->name('profile');
 });
 
 // Self-service portal

@@ -7,7 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Poppins', 'sans-serif'] } } } }</script>
+    <link rel="stylesheet" href="{{ asset('css/design-system.css') }}">
     @livewireStyles
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900">
@@ -16,10 +18,7 @@
         <div class="flex items-center gap-4 text-sm">
             @auth
                 <a href="{{ route('portal.tickets.index') }}" class="text-gray-600 hover:text-gray-900">My Tickets</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="text-gray-500 hover:text-gray-900">Sign out</button>
-                </form>
+                <a href="{{ route('logout') }}" class="text-gray-500 hover:text-gray-900">Sign out</a>
             @else
                 <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Sign in</a>
             @endauth

@@ -4,7 +4,14 @@
 
 @section('content')
     <div class="mb-4 flex items-center justify-between">
-        <h1 class="text-xl font-bold">My Tickets</h1>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('portal.index') }}" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Dashboard
+            </a>
+            <span class="text-gray-300">/</span>
+            <h1 class="text-xl font-bold">My Tickets</h1>
+        </div>
         <a href="{{ route('portal.tickets.create') }}"
            class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
             New Ticket
