@@ -24,6 +24,18 @@
             <span>Submitted: <strong>{{ $ticket->created_at->format('M j, Y') }}</strong></span>
         </div>
 
+        @if($ticket->watchers->isNotEmpty())
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+                <span class="text-xs text-gray-500">Tagged:</span>
+                @foreach($ticket->watchers as $watcher)
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                        <span class="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white" style="font-size:9px">{{ strtoupper(substr($watcher->name, 0, 2)) }}</span>
+                        {{ $watcher->name }}
+                    </span>
+                @endforeach
+            </div>
+        @endif
+
         @if($ticket->description)
             <div class="mb-6 rounded bg-gray-50 p-4 text-sm text-gray-700">
                 {{ $ticket->description }}

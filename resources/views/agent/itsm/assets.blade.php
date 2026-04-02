@@ -1,19 +1,54 @@
 @extends('layouts.agent')
 
-@section('content')
-    <div class="mb-6 flex items-center justify-between">
+@section('page-header')
+    <div class="flex items-center justify-between">
         <div>
-            <h2 class="text-2xl font-semibold text-gray-800">Asset Management</h2>
-            <p class="text-sm text-gray-500 mt-1">Track hardware, software and configuration items</p>
+            <div class="page-title">IT Asset Management</div>
+            <div class="page-sub">Track hardware, software, and infrastructure assets</div>
         </div>
-        <button class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">+ New Asset</button>
+        <button class="btn-ds primary">+ Register Asset</button>
     </div>
+@endsection
 
-    <div class="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-        <svg class="mx-auto mb-4 h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+@section('content')
+@php
+    $assetStats = [
+        'total'    => \App\Models\Asset::count(),
+        'active'   => \App\Models\Asset::where('status', 'active')->count(),
+        'inactive' => \App\Models\Asset::where('status', 'inactive')->count(),
+        'assigned' => \App\Models\Asset::whereNotNull('assigned_to')->count(),
+    ];
+@endphp
+
+<div class="stats-ds mb-4">
+    <div class="stat-card">
+        <div class="stat-label">Total Assets</div>
+        <div class="stat-val text-brand">{{ $assetStats['total'] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-val text-success">{{ $assetStats['active'] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Assigned</div>
+        <div class="stat-val">{{ $assetStats['assigned'] }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Inactive</div>
+        <div class="stat-val text-gray-400">{{ $assetStats['inactive'] }}</div>
+    </div>
+</div>
+
+<div class="card-ds">
+    <div class="card-hdr">
+        <div class="card-title">Asset Register</div>
+    </div>
+    <div class="card-body py-16 text-center">
+        <svg class="w-12 h-12 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
         </svg>
-        <p class="text-gray-500 font-medium">No assets registered</p>
-        <p class="text-sm text-gray-400 mt-1">Assets will appear here once added to the inventory.</p>
+        <div class="text-gray-400 font-medium mb-1">Asset UI in progress</div>
+        <div class="text-xs text-gray-300">The full asset table, tagging, and association with tickets will be available shortly.</div>
     </div>
+</div>
 @endsection

@@ -1,19 +1,22 @@
 @extends('layouts.agent')
 
-@section('content')
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-semibold text-gray-800">Automation Rules</h2>
-            <p class="text-sm text-gray-500 mt-1">Automate ticket routing, escalations and notifications</p>
-        </div>
-        <button class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">+ New Rule</button>
-    </div>
+@section('page-header')
+    <div class="page-title">Automation Rules</div>
+    <div class="page-sub">Define triggers and actions to automate your workflow</div>
+@endsection
 
-    <div class="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-        <svg class="mx-auto mb-4 h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+@section('content')
+<div class="card-ds">
+    <div class="card-hdr">
+        <div class="card-title">Automation Rules</div>
+        <button class="btn-ds primary">+ New Rule</button>
+    </div>
+    <div class="card-body py-16 text-center">
+        <svg class="w-12 h-12 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
-        <p class="text-gray-500 font-medium">No automation rules configured</p>
-        <p class="text-sm text-gray-400 mt-1">Create rules to automatically assign, escalate or notify on ticket events.</p>
+        <div class="text-gray-400 font-medium mb-1">Automation Builder coming in Phase 2</div>
+        <div class="text-xs text-gray-300">No-code rule editor with triggers (ticket created, SLA breached) and actions (assign, notify, tag) coming soon.</div>
     </div>
+</div>
 @endsection

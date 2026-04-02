@@ -1,38 +1,49 @@
 @extends('layouts.agent')
 
+@section('page-header')
+    <div class="page-title">My Profile</div>
+    <div class="page-sub">Manage your personal information and preferences</div>
+@endsection
+
 @section('content')
-    <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-800">My Profile</h2>
-        <p class="text-sm text-gray-500 mt-1">Manage your account details</p>
+@php $user = auth()->user(); @endphp
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    {{-- Avatar & Quick Info --}}
+    <div class="card-ds text-center p-6">
+        <div class="w-20 h-20 rounded-full bg-accent flex items-center justify-center mx-auto mb-4 text-white text-3xl font-semibold">
+            {{ strtoupper(substr($user->name, 0, 2)) }}
+        </div>
+        <div class="font-semibold text-gray-900 text-lg">{{ $user->name }}</div>
+        <div class="text-sm text-gray-400 mt-1">{{ $user->email }}</div>
+        <div class="mt-2">
+            <span class="badge-ds {{ $user->role === 'admin' ? 'open' : ($user->role === 'agent' ? 'inprog' : 'low') }}">
+                {{ ucfirst($user->role) }}
+            </span>
+        </div>
+        <div class="mt-4 text-xs text-gray-400">Member since {{ $user->created_at->format('M Y') }}</div>
     </div>
 
-    <div class="max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
-                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-            </div>
-            <div>
-                <p class="font-semibold text-gray-900">{{ auth()->user()->name }}</p>
-                <p class="text-sm text-gray-500">{{ auth()->user()->email }}</p>
-                <span class="inline-block mt-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 capitalize">
-                    {{ auth()->user()->getRoleNames()->first() ?? 'agent' }}
-                </span>
-            </div>
+    {{-- Profile Edit Form --}}
+    <div class="card-ds lg:col-span-2">
+        <div class="card-hdr">
+            <div class="card-title">Personal Information</div>
         </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" value="{{ auth()->user()->name }}" disabled
-                       class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+        <div class="card-body space-y-4">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input-ds" value="{{ $user->name }}" readonly>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <input type="email" value="{{ auth()->user()->email }}" disabled
-                       class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input-ds" value="{{ $user->email }}" readonly>
             </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-input-ds" value="{{ ucfirst($user->role) }}" readonly>
+            </div>
+            <p class="text-xs text-gray-400">Profile editing, avatar upload, and password change coming in Phase 2.</p>
         </div>
-
-        <p class="mt-4 text-xs text-gray-400">Profile editing coming soon.</p>
     </div>
+</div>
 @endsection

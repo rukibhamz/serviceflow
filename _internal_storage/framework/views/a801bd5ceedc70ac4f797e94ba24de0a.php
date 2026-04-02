@@ -1,10 +1,9 @@
-
+<?php $__env->startSection('page-header'); ?>
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Welcome back, <?php echo e(auth()->user()->name); ?></div>
+<?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
-    <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-800">Dashboard</h2>
-        <p class="text-sm text-gray-500 mt-1">Welcome back, <?php echo e(auth()->user()->name); ?></p>
-    </div>
     <?php
 $__split = function ($name, $params = []) {
     return [$name, $params];

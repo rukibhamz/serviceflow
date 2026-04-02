@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'update_uri' => 'livewire/update',
-    'asset_url'  => '/serviceflow',
+    'update_uri' => '/serviceflow/livewire/update',
+    'asset_url'  => 'http://localhost/serviceflow',
 
     /*
     |---------------------------------------------------------------------------

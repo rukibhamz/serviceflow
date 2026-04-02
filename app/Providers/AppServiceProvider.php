@@ -11,8 +11,10 @@ use App\Models\KnowledgeArticle;
 use App\Models\Ticket;
 use App\Observers\KnowledgeArticleObserver;
 use App\Observers\TicketObserver;
+use App\View\Composers\SettingsComposer;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -33,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Ticket::observe(TicketObserver::class);
         KnowledgeArticle::observe(KnowledgeArticleObserver::class);
+
+        // Apply branding settings to all views
+        View::composer('*', SettingsComposer::class);
 
         // Wire automation engine into all registered trigger events
         foreach ([TicketCreated::class, TicketUpdated::class, CommentAdded::class, SlaBreached::class] as $eventClass) {

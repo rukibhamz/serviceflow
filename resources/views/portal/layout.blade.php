@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Poppins', 'sans-serif'] } } } }</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="{{ asset('css/design-system.css') }}">
     @livewireStyles
 </head>
@@ -17,6 +18,7 @@
         <a href="{{ route('portal.index') }}" class="font-semibold text-blue-600">Support Portal</a>
         <div class="flex items-center gap-4 text-sm">
             @auth
+                <a href="{{ route('portal.index') }}" class="text-gray-600 hover:text-gray-900">Dashboard</a>
                 <a href="{{ route('portal.tickets.index') }}" class="text-gray-600 hover:text-gray-900">My Tickets</a>
                 <a href="{{ route('logout') }}" class="text-gray-500 hover:text-gray-900">Sign out</a>
             @else

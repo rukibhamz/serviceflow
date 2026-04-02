@@ -54,6 +54,7 @@ class PortalController extends Controller
      */
     public function showTicket(Request $request, Ticket $ticket)
     {
+        $ticket->load('watchers');
         $user = auth()->user();
 
         // Authenticated requester check
@@ -74,7 +75,13 @@ class PortalController extends Controller
      */
     public function createTicket()
     {
-        return view('portal.tickets.create');
+        // All users except the current user — for tagging colleagues/supervisors
+        $colleagues = \App\Models\User::where('id', '!=', auth()->id())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return view('portal.tickets.create', compact('colleagues'));
     }
 
     /**
@@ -83,15 +90,26 @@ class PortalController extends Controller
     public function storeTicket(Request $request)
     {
         $data = $request->validate([
-            'subject'     => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority'    => ['required', 'string', 'in:low,medium,high,critical'],
-            'type'        => ['required', 'string', 'in:incident,service_request,problem,change'],
+            'subject'      => ['required', 'string', 'max:255'],
+            'description'  => ['nullable', 'string'],
+            'priority'     => ['required', 'string', 'in:low,medium,high,critical'],
+            'type'         => ['required', 'string', 'in:incident,service_request,problem,change'],
+            'tagged_users' => ['nullable', 'array'],
+            'tagged_users.*' => ['integer', 'exists:users,id'],
         ]);
 
         $data['source'] = 'web';
 
         $ticket = $this->createTicketAction->execute($data, auth()->user());
+
+        // Save tagged colleagues as watchers (exclude the requester themselves)
+        if (!empty($data['tagged_users'])) {
+            $watcherIds = collect($data['tagged_users'])
+                ->filter(fn ($id) => $id != auth()->id())
+                ->unique()
+                ->values();
+            $ticket->watchers()->syncWithoutDetaching($watcherIds);
+        }
 
         return redirect()->route('portal.tickets.show', $ticket->ulid)
             ->with('success', 'Your ticket has been submitted successfully.');

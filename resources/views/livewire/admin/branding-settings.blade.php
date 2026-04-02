@@ -1,0 +1,187 @@
+<div
+    x-data="{
+        primary: $wire.entangle('themePrimary'),
+        accent:  $wire.entangle('themeAccent'),
+        name:    $wire.entangle('brandName')
+    }"
+    @branding-saved.window="
+        var s = document.getElementById('theme-vars');
+        if(s){ s.textContent = ':root{--brand:'+primary+';--brand-lt:'+primary+'cc;--brand-dim:'+primary+'1a;--accent:'+accent+';}'; }
+        var topnav = document.querySelector('.topnav');
+        if(topnav){ topnav.style.background = primary; }
+        var dot = document.querySelector('.logo-dot');
+        if(dot){ dot.style.background = accent; }
+        var avatar = document.querySelector('.nav-avatar');
+        if(avatar){ avatar.style.background = accent; }
+    "
+>
+
+    {{-- Success flash --}}
+    @if($saved)
+    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
+         class="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Branding saved successfully.
+    </div>
+    @endif
+
+    <form wire:submit.prevent="save" class="space-y-6">
+
+        <div class="card-ds">
+            <div class="card-hdr">
+                <div class="card-title">Branding &amp; Theme</div>
+                <span class="text-xs text-gray-400">Admin only</span>
+            </div>
+            <div class="card-body space-y-5">
+
+                {{-- Brand Name --}}
+                <div class="form-group">
+                    <label class="form-label">Brand / Company Name</label>
+                    <input type="text"
+                           wire:model="brandName"
+                           class="form-input-ds max-w-sm"
+                           placeholder="Your Company Name"
+                           required>
+                    @error('brandName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                {{-- Logo --}}
+                <div class="form-group">
+                    <label class="form-label">Logo</label>
+                    <div class="flex items-start gap-4">
+                        <div class="w-28 h-16 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                            @if($currentLogo)
+                                <img src="{{ $currentLogo }}" class="h-full w-full object-contain p-1">
+                            @else
+                                <span class="text-xs text-gray-300">No logo</span>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" wire:model="logo" accept="image/*"
+                                   class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <p class="text-xs text-gray-400 mt-1">PNG, SVG, or JPEG · Max 2 MB · Recommended: 220×56 px</p>
+                            @if($currentLogo)
+                                <button type="button" wire:click="removeLogo"
+                                        class="mt-2 text-xs text-red-400 hover:text-red-600">
+                                    Remove current logo
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Preset swatches --}}
+                <div class="form-group">
+                    <label class="form-label">Theme Preset</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
+                        @foreach($presets as $key => $preset)
+                        <label class="cursor-pointer">
+                            <input type="radio"
+                                   wire:model="themePreset"
+                                   value="{{ $key }}"
+                                   class="sr-only peer"
+                                   @if($key !== 'custom')
+                                   x-on:change="
+                                       primary = '{{ $preset['primary'] }}';
+                                       accent  = '{{ $preset['accent'] }}';
+                                       document.getElementById('inp_primary').value = '{{ $preset['primary'] }}';
+                                       document.getElementById('inp_accent').value  = '{{ $preset['accent'] }}';
+                                       $wire.set('themePrimary', '{{ $preset['primary'] }}');
+                                       $wire.set('themeAccent',  '{{ $preset['accent'] }}');
+                                   "
+                                   @endif
+                            >
+                            <div class="relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-gray-100 peer-checked:border-blue-500 peer-checked:bg-blue-50/40 bg-white hover:bg-gray-50 transition select-none">
+                                @if($key !== 'custom')
+                                    <div class="flex gap-1.5">
+                                        <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:{{ $preset['primary'] }}"></div>
+                                        <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:{{ $preset['accent'] }}"></div>
+                                    </div>
+                                @else
+                                    <div class="w-12 h-6 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 shadow"></div>
+                                @endif
+                                <span class="text-xs font-medium text-gray-700 text-center leading-tight">{{ $preset['label'] }}</span>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Color pickers --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Primary Color</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color"
+                                   id="inp_primary"
+                                   wire:model.change="themePrimary"
+                                   x-on:input="primary = $event.target.value"
+                                   class="w-10 h-9 rounded border border-gray-200 cursor-pointer p-0.5 flex-shrink-0">
+                            <input type="text"
+                                   wire:model.live.debounce.300ms="themePrimary"
+                                   x-on:input="if(/^#[0-9a-fA-F]{6}$/.test($event.target.value)){ primary = $event.target.value; document.getElementById('inp_primary').value = $event.target.value; }"
+                                   class="form-input-ds font-mono text-xs" placeholder="#1a4fa0" maxlength="7">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Accent / Secondary Color</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color"
+                                   id="inp_accent"
+                                   wire:model.change="themeAccent"
+                                   x-on:input="accent = $event.target.value"
+                                   class="w-10 h-9 rounded border border-gray-200 cursor-pointer p-0.5 flex-shrink-0">
+                            <input type="text"
+                                   wire:model.live.debounce.300ms="themeAccent"
+                                   x-on:input="if(/^#[0-9a-fA-F]{6}$/.test($event.target.value)){ accent = $event.target.value; document.getElementById('inp_accent').value = $event.target.value; }"
+                                   class="form-input-ds font-mono text-xs" placeholder="#f97316" maxlength="7">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Live preview --}}
+                <div>
+                    <p class="text-xs text-gray-400 mb-1.5">Live preview</p>
+                    <div class="rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                        <div class="h-10 flex items-center gap-3 px-4 text-white text-xs font-medium"
+                             :style="'background:' + primary">
+                            <div class="w-2 h-2 rounded-full" :style="'background:' + accent"></div>
+                            <span x-text="name || 'Your Company'"></span>
+                            <div class="ml-auto w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                 :style="'background:' + accent">AG</div>
+                        </div>
+                        <div class="flex" style="height:52px;">
+                            <div class="w-36 flex flex-col justify-center gap-1.5 px-3 py-2"
+                                 :style="'background:' + primary + 'dd'">
+                                <div class="h-2 rounded-full" :style="'background:' + accent + '; width:70%'"></div>
+                                <div class="h-2 rounded-full bg-white w-4/5" style="opacity:0.4"></div>
+                                <div class="h-2 rounded-full bg-white w-3/5" style="opacity:0.3"></div>
+                            </div>
+                            <div class="flex-1 bg-gray-50 flex items-center px-4">
+                                <div class="space-y-1.5 w-full">
+                                    <div class="h-2 rounded bg-gray-200 w-3/4"></div>
+                                    <div class="h-2 rounded bg-gray-200 w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-1" :style="'background:' + accent"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="submit" class="btn-ds primary" wire:loading.attr="disabled">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span wire:loading.remove>Save Branding</span>
+                <span wire:loading>Saving…</span>
+            </button>
+        </div>
+
+    </form>
+</div>

@@ -1,12 +1,10 @@
-@extends('layouts.agent')
-
-@section('page-header')
+<?php $__env->startSection('page-header'); ?>
     <div class="page-title">Settings</div>
     <div class="page-sub">Manage system preferences and branding</div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
-@php
+<?php $__env->startSection('content'); ?>
+<?php
     $svc        = app(\App\Services\SettingService::class);
     $all        = $svc->all();
     $curName    = $all['brand_name']    ?? 'ServiceFlow';
@@ -15,34 +13,34 @@
     $curAccent  = $all['theme_accent']  ?? '#f97316';
     $curLogo    = $svc->logoUrl();
     $presets    = \App\Services\SettingService::presets();
-@endphp
+?>
 <div class="space-y-6">
 
-    {{-- General info (read-only) --}}
+    
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="card-ds">
             <div class="card-hdr"><div class="card-title">General</div></div>
             <div class="card-body space-y-3">
                 <div class="form-group">
                     <label class="form-label">App URL</label>
-                    <input type="text" class="form-input-ds" value="{{ config('app.url') }}" readonly>
+                    <input type="text" class="form-input-ds" value="<?php echo e(config('app.url')); ?>" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Default Timezone</label>
-                    <input type="text" class="form-input-ds" value="{{ config('app.timezone') }}" readonly>
+                    <input type="text" class="form-input-ds" value="<?php echo e(config('app.timezone')); ?>" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Mail From</label>
-                    <input type="text" class="form-input-ds" value="{{ config('mail.from.address') }}" readonly>
+                    <input type="text" class="form-input-ds" value="<?php echo e(config('mail.from.address')); ?>" readonly>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Branding & Theme --}}
-    <div x-data="{ primary: '{{ $curPrimary }}', accent: '{{ $curAccent }}', name: '{{ addslashes($curName) }}' }">
-        {{-- Flash --}}
-        @if(session('branding_saved'))
+    
+    <div x-data="{ primary: '<?php echo e($curPrimary); ?>', accent: '<?php echo e($curAccent); ?>', name: '<?php echo e(addslashes($curName)); ?>' }">
+        
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('branding_saved')): ?>
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
              class="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,13 +48,13 @@
             </svg>
             Branding saved successfully.
         </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <form method="POST"
-              action="{{ route('agent.settings.branding.save') }}"
+              action="<?php echo e(route('agent.settings.branding.save')); ?>"
               enctype="multipart/form-data"
               class="space-y-6">
-            @csrf
+            <?php echo csrf_field(); ?>
 
             <div class="card-ds">
                 <div class="card-hdr">
@@ -65,86 +63,94 @@
                 </div>
                 <div class="card-body space-y-5">
 
-                    {{-- Brand Name --}}
+                    
                     <div class="form-group">
                         <label class="form-label">Brand / Company Name</label>
                         <input type="text" name="brand_name"
-                               value="{{ old('brand_name', $curName) }}"
+                               value="<?php echo e(old('brand_name', $curName)); ?>"
                                x-on:input="name = $event.target.value"
                                class="form-input-ds max-w-sm"
                                placeholder="Your Company Name" required>
-                        @error('brand_name')<span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>@enderror
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['brand_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><span class="text-xs text-red-500 mt-1 block"><?php echo e($message); ?></span><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
 
-                    {{-- Logo --}}
+                    
                     <div class="form-group">
                         <label class="form-label">Logo</label>
                         <div class="flex items-start gap-4">
                             <div class="w-28 h-16 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
-                                @if($curLogo)
-                                    <img src="{{ $curLogo }}" class="h-full w-full object-contain p-1">
-                                @else
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
+                                    <img src="<?php echo e($curLogo); ?>" class="h-full w-full object-contain p-1">
+                                <?php else: ?>
                                     <span class="text-xs text-gray-300">No logo</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                             <div class="flex-1">
                                 <input type="file" name="brand_logo" accept="image/*"
                                        class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
                                 <p class="text-xs text-gray-400 mt-1">PNG, SVG, or JPEG · Max 2 MB · Recommended: 220×56 px</p>
-                                @if($curLogo)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
                                     <label class="flex items-center gap-1.5 mt-2 cursor-pointer text-xs text-red-400 hover:text-red-600">
                                         <input type="checkbox" name="remove_logo" value="1" class="rounded">
                                         Remove current logo
                                     </label>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Preset swatches --}}
+                    
                     <div class="form-group">
                         <label class="form-label">Theme Preset</label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
-                            @foreach($presets as $key => $preset)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $presets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $preset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <label class="cursor-pointer">
-                                <input type="radio" name="theme_preset" value="{{ $key }}"
-                                       {{ old('theme_preset', $curPreset) === $key ? 'checked' : '' }}
+                                <input type="radio" name="theme_preset" value="<?php echo e($key); ?>"
+                                       <?php echo e(old('theme_preset', $curPreset) === $key ? 'checked' : ''); ?>
+
                                        class="sr-only peer"
-                                       @if($key !== 'custom')
+                                       <?php if($key !== 'custom'): ?>
                                        x-on:change="
-                                           primary = '{{ $preset['primary'] }}';
-                                           accent  = '{{ $preset['accent'] }}';
-                                           document.getElementById('inp_primary').value = '{{ $preset['primary'] }}';
-                                           document.getElementById('inp_accent').value  = '{{ $preset['accent'] }}';
+                                           primary = '<?php echo e($preset['primary']); ?>';
+                                           accent  = '<?php echo e($preset['accent']); ?>';
+                                           document.getElementById('inp_primary').value = '<?php echo e($preset['primary']); ?>';
+                                           document.getElementById('inp_accent').value  = '<?php echo e($preset['accent']); ?>';
                                        "
-                                       @endif>
+                                       <?php endif; ?>>
                                 <div class="relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-gray-100 peer-checked:border-blue-500 peer-checked:bg-blue-50/40 bg-white hover:bg-gray-50 transition select-none">
-                                    @if($key !== 'custom')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($key !== 'custom'): ?>
                                         <div class="flex gap-1.5">
-                                            <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:{{ $preset['primary'] }}"></div>
-                                            <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:{{ $preset['accent'] }}"></div>
+                                            <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:<?php echo e($preset['primary']); ?>"></div>
+                                            <div class="w-6 h-6 rounded-full shadow border border-black/10" style="background:<?php echo e($preset['accent']); ?>"></div>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="w-12 h-6 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 shadow"></div>
-                                    @endif
-                                    <span class="text-xs font-medium text-gray-700 text-center leading-tight">{{ $preset['label'] }}</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <span class="text-xs font-medium text-gray-700 text-center leading-tight"><?php echo e($preset['label']); ?></span>
                                 </div>
                             </label>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
-                    {{-- Color pickers --}}
+                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label class="form-label">Primary Color</label>
                             <div class="flex items-center gap-2">
                                 <input type="color" id="inp_primary" name="theme_primary"
-                                       value="{{ old('theme_primary', $curPrimary) }}"
+                                       value="<?php echo e(old('theme_primary', $curPrimary)); ?>"
                                        x-on:input="primary = $event.target.value; document.getElementById('inp_primary_txt').value = $event.target.value"
                                        class="w-10 h-9 rounded border border-gray-200 cursor-pointer p-0.5 flex-shrink-0">
                                 <input type="text" id="inp_primary_txt"
-                                       value="{{ old('theme_primary', $curPrimary) }}"
+                                       value="<?php echo e(old('theme_primary', $curPrimary)); ?>"
                                        x-on:input="if(/^#[0-9a-fA-F]{6}$/.test($event.target.value)){ primary=$event.target.value; document.getElementById('inp_primary').value=$event.target.value; }"
                                        class="form-input-ds font-mono text-xs" placeholder="#1a4fa0" maxlength="7">
                             </div>
@@ -153,18 +159,18 @@
                             <label class="form-label">Accent / Secondary Color</label>
                             <div class="flex items-center gap-2">
                                 <input type="color" id="inp_accent" name="theme_accent"
-                                       value="{{ old('theme_accent', $curAccent) }}"
+                                       value="<?php echo e(old('theme_accent', $curAccent)); ?>"
                                        x-on:input="accent = $event.target.value; document.getElementById('inp_accent_txt').value = $event.target.value"
                                        class="w-10 h-9 rounded border border-gray-200 cursor-pointer p-0.5 flex-shrink-0">
                                 <input type="text" id="inp_accent_txt"
-                                       value="{{ old('theme_accent', $curAccent) }}"
+                                       value="<?php echo e(old('theme_accent', $curAccent)); ?>"
                                        x-on:input="if(/^#[0-9a-fA-F]{6}$/.test($event.target.value)){ accent=$event.target.value; document.getElementById('inp_accent').value=$event.target.value; }"
                                        class="form-input-ds font-mono text-xs" placeholder="#f97316" maxlength="7">
                             </div>
                         </div>
                     </div>
 
-                    {{-- Live preview --}}
+                    
                     <div>
                         <p class="text-xs text-gray-400 mb-1.5">Live preview</p>
                         <div class="rounded-xl border border-gray-100 overflow-hidden shadow-sm">
@@ -210,12 +216,12 @@
 
 </div>
 
-{{-- After save: patch the live theme vars without a full reload --}}
-@if(session('branding_saved'))
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('branding_saved')): ?>
 <script>
     (function(){
-        var primary = '{{ $curPrimary }}';
-        var accent  = '{{ $curAccent }}';
+        var primary = '<?php echo e($curPrimary); ?>';
+        var accent  = '<?php echo e($curAccent); ?>';
         var s = document.getElementById('theme-vars');
         if(s){ s.textContent = ':root{--brand:'+primary+';--brand-lt:'+primary+'cc;--brand-dim:'+primary+'1a;--accent:'+accent+';}'; }
         var topnav = document.querySelector('.topnav');
@@ -226,5 +232,7 @@
         if(avatar){ avatar.style.background = accent; }
     })();
 </script>
-@endif
-@endsection
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.agent', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\serviceflow\resources\views/agent/settings/index.blade.php ENDPATH**/ ?>

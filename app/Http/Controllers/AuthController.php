@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function showLogin(): \Illuminate\View\View
+    {
+        return view('auth.login');
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([

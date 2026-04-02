@@ -19,7 +19,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/login', \App\Livewire\Auth\Login::class)->name('login')->middleware('guest');
+Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'store'])->name('login.store')->middleware('guest');
 
@@ -32,6 +32,8 @@ Route::match(['GET', 'POST'], '/logout', function () {
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' => 'admin.'], function () {
     Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
+    Route::get('/branding', fn () => view('admin.branding'))->name('branding');
+    Route::post('/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('branding.save');
     Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
     Route::get('/teams', \App\Livewire\Admin\TeamManager::class)->name('teams');
 });
@@ -65,6 +67,7 @@ Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () 
 
     // Settings & Profile stubs
     Route::get('/settings', fn () => view('agent.settings.index'))->name('settings.index');
+    Route::post('/settings/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('settings.branding.save');
     Route::get('/profile', fn () => view('agent.settings.profile'))->name('profile');
 });
 
