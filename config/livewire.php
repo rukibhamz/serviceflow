@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'update_uri' => '/serviceflow/livewire/update',
-    'asset_url'  => 'http://localhost/serviceflow',
+    'update_uri' => '/livewire/update',
+    'asset_url'  => '/serviceflow/livewire/livewire.js',
 
     /*
     |---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ return [
     |
     */
 
-    'inject_assets' => true,
+    'inject_assets' => false,
 
     /*
     |---------------------------------------------------------------------------

@@ -44,13 +44,13 @@ class AppServiceProvider extends ServiceProvider
             Event::listen($eventClass, RunAutomationEngine::class);
         }
 
-        // Fix for 405/404 errors in subdirectory: ensure Livewire hits the correct routes
+        // Fix for subdirectory deployment: Livewire routes
         Livewire::setUpdateRoute(function ($handle) {
-            return Route::post('/livewire/update', $handle);
+            return Route::post('/livewire/update', $handle)->middleware('web')->name('livewire.update');
         });
 
         Livewire::setScriptRoute(function ($handle) {
-            return Route::get('/livewire/livewire.js', $handle);
+            return Route::get('/livewire/livewire.js', $handle)->middleware('web')->name('livewire.js');
         });
     }
 }

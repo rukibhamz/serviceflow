@@ -70,3 +70,6 @@ Did you mean one of these?
     route:list
     schedule:list | GET http://localhost/serviceflow
 [2026-04-02 09:30:29] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR, expecting T_VARIABLE on line 1 | GET http://localhost/serviceflow
+[2026-04-02 10:48:43] Exception: RuntimeException - Session store not set on request. | POST http://localhost/serviceflow/livewire/update
+[2026-04-02 10:49:10] Exception: RuntimeException - Session store not set on request. | POST http://localhost/serviceflow/livewire/update
+[2026-04-02 11:12:39] Exception: Symfony\Component\Console\Exception\CommandNotFoundException - Command "grep" is not defined. | GET http://localhost/serviceflow
