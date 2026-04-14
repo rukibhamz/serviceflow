@@ -69,7 +69,7 @@ class SettingService
         $primary = $settings['theme_primary'] ?? '#1a4fa0';
         $accent  = $settings['theme_accent']  ?? '#f97316';
 
-        return ":root { --brand: {$primary}; --brand-lt: {$primary}cc; --brand-dim: {$primary}1a; --accent: {$accent}; }";
+        return ":root { --brand: {$primary}; --brand-lt: {$primary}cc; --brand-dim: {$primary}33; --accent: {$accent}; }";
     }
 
     /** Pre-defined theme presets. */

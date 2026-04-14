@@ -17,6 +17,8 @@ class TicketStatusMachine
 
     public function canTransition(string $from, string $to): bool
     {
+        $from = trim(strtolower($from));
+        $to = trim(strtolower($to));
         return in_array($to, self::TRANSITIONS[$from] ?? [], true);
     }
 

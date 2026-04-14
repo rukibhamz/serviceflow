@@ -34,9 +34,13 @@
 </head>
 <body class="bg-gray-100">
 
-    <div class="app-shell" x-data="{ sidebarOpen: true, profileOpen: false }">
+    <div class="app-shell" x-data="{ sidebarOpen: window.innerWidth > 768, profileOpen: false }" @resize.window="if (window.innerWidth > 768) sidebarOpen = true; else sidebarOpen = false;">
         <!-- ── Top nav ── -->
         <div class="topnav">
+            
+            <button @click="sidebarOpen = !sidebarOpen" class="md:hidden flex items-center justify-center w-8 h-8 rounded hover:bg-white/10 transition mr-2" title="Toggle menu">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($appSettings['brand_logo'])): ?>
                 <a href="<?php echo e(route('agent.dashboard')); ?>" class="flex items-center">
                     <img src="<?php echo e($brandLogoUrl); ?>" alt="<?php echo e($appSettings['brand_name'] ?? 'ServiceFlow'); ?>" class="h-7 max-w-[160px] object-contain">
@@ -125,12 +129,13 @@
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $stripItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <?php
                             $isActive = $item['match'] ? Request::routeIs($item['match']) : false;
-                            $bg = $isActive ? 'var(--brand)' : 'transparent';
-                            $color = $isActive ? '#fff' : 'rgba(255,255,255,0.5)';
+                            $bg = $isActive ? 'rgba(255,255,255,0.1)' : 'transparent';
+                            $color = $isActive ? '#fff' : 'rgba(255,255,255,0.6)';
+                            $borderLeft = $isActive ? '3px solid var(--accent)' : '3px solid transparent';
                         ?>
                         <a href="<?php echo e(route($item['route'])); ?>" title="<?php echo e($item['title']); ?>"
-                           style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:<?php echo e($bg); ?>;color:<?php echo e($color); ?>;text-decoration:none;transition:background 0.15s,transform 0.12s;flex-shrink:0;"
-                           onmouseover="if(this.dataset.active!='1'){this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff';}this.style.transform='scale(1.15)'"
+                           style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:6px;background:<?php echo e($bg); ?>;color:<?php echo e($color); ?>;text-decoration:none;transition:background 0.15s,transform 0.12s;flex-shrink:0;border-left:<?php echo e($borderLeft); ?>;"
+                           onmouseover="if(this.dataset.active!='1'){this.style.background='rgba(255,255,255,0.08)';this.style.color='#fff';}this.style.transform='scale(1.15)'"
                            onmouseout="if(this.dataset.active!='1'){this.style.background='<?php echo e($bg); ?>';this.style.color='<?php echo e($color); ?>';}this.style.transform='scale(1)'"
                            data-active="<?php echo e($isActive ? '1' : '0'); ?>">
                             <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor"><?php echo $item['icon']; ?></svg>
@@ -150,8 +155,8 @@
 
                     
                     <div style="display:flex; align-items:center; padding: 12px 8px 8px 14px; margin-bottom: 2px;">
-                        <span style="font-size:10px; font-weight:500; color:var(--color-text-tertiary); letter-spacing:0.5px; text-transform:uppercase; flex:1;">Service Desk</span>
-                        <button @click="sidebarOpen = false" class="sidebar-collapse-btn" title="Collapse menu" style="margin-left:8px;">
+                        <span style="font-size:10px; font-weight:600; color:rgba(255,255,255,0.5); letter-spacing:0.8px; text-transform:uppercase; flex:1;">Service Desk</span>
+                        <button @click="sidebarOpen = false" class="sidebar-collapse-btn" title="Collapse menu" style="margin-left:8px; color:rgba(255,255,255,0.6);">
                             
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M10 4l-4 4 4 4"/>
