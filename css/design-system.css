@@ -36,7 +36,7 @@ body {
 .app-shell { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
 
 /* ── Top nav ── */
-.topnav { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 46px; background: #3d3d3d; flex-shrink: 0; color: #fff; }
+.topnav { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 46px; background: var(--brand); flex-shrink: 0; color: #fff; }
 .logo { font-weight: 500; font-size: 15px; color: #fff; letter-spacing: -0.3px; display: flex; align-items: center; gap: 6px; }
 .logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
 .nav-sep { flex: 1; }
@@ -48,16 +48,8 @@ body {
 /* ── Body ── */
 .body-wrapper { display: flex; flex: 1; min-height: 0; }
 
-/* ── Sidebar ── */
-.sidebar { width: var(--sidebar-w); flex-shrink: 0; border-right: 1px solid var(--color-border-primary); background: var(--color-background-secondary); display: flex; flex-direction: column; padding: 12px 0; overflow-y: auto; }
-.sidebar-section { font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.5px; padding: 22px 14px 8px; text-transform: uppercase; }
-.sidebar-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; cursor: pointer; font-size: 13px; color: var(--color-text-secondary); border-left: 2.5px solid transparent; transition: all 0.12s; text-decoration: none; }
-.sidebar-item:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
-.sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left-color: var(--brand); font-weight: 500; }
-.sidebar-icon { width: 16px; height: 16px; opacity: 0.6; flex-shrink: 0; }
-.sidebar-item.active .sidebar-icon { opacity: 1; }
-.sidebar-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; border-radius: 8px; padding: 1px 5px; font-weight: 500; }
-.sidebar-badge.warn { background: var(--warn); }
+/* ── Sidebar (legacy class — kept for layout compatibility) ── */
+.sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--brand); display: flex; flex-direction: column; padding: 0; overflow-y: auto; }
 
 /* ── Main content ── */
 .main-content { flex: 1; overflow-y: auto; background: var(--color-background-tertiary); display: flex; flex-direction: column; }
@@ -132,7 +124,7 @@ body {
 
 .sidebar-shell {
   flex-shrink: 0;
-  background: #3d3d3d;
+  background: var(--brand);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -180,7 +172,6 @@ body {
   background: rgba(255,255,255,0.1);
   color: #fff;
   border-left: 3px solid var(--accent);
-}
 }
 /* Native tooltip via title attr is enough; no extra CSS needed */
 

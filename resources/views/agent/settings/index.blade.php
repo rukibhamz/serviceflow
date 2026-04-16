@@ -217,9 +217,11 @@
         var primary = '{{ $curPrimary }}';
         var accent  = '{{ $curAccent }}';
         var s = document.getElementById('theme-vars');
-        if(s){ s.textContent = ':root{--brand:'+primary+';--brand-lt:'+primary+'cc;--brand-dim:'+primary+'1a;--accent:'+accent+';}'; }
+        if(s){ s.textContent = ':root{--brand:'+primary+';--brand-lt:'+primary+'cc;--brand-dim:'+primary+'33;--accent:'+accent+';}'; }
         var topnav = document.querySelector('.topnav');
         if(topnav){ topnav.style.background = primary; }
+        var sidebar = document.querySelector('.sidebar-shell');
+        if(sidebar){ sidebar.style.background = primary; }
         var dot = document.querySelector('.logo-dot');
         if(dot){ dot.style.background = accent; }
         var avatar = document.querySelector('.nav-avatar');
