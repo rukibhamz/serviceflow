@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <link rel="icon" href="{{ app(\App\Services\SettingService::class)->faviconUrl() }}" type="image/x-icon">
+    
     <link rel="stylesheet" href="{{ asset('css/design-system.css') }}">
     {{-- Dynamic theme override from admin branding settings --}}
     <style id="theme-vars">{!! $cssVars ?? '' !!}</style>

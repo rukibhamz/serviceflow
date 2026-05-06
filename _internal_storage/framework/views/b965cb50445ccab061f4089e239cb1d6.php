@@ -12,6 +12,7 @@
     $curPrimary = $all['theme_primary'] ?? '#1a4fa0';
     $curAccent  = $all['theme_accent']  ?? '#f97316';
     $curLogo    = $svc->logoUrl();
+    $curFavicon = $svc->faviconUrl();
     $presets    = \App\Services\SettingService::presets();
 ?>
 <div class="space-y-6">
@@ -82,28 +83,58 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                     </div>
 
                     
-                    <div class="form-group">
-                        <label class="form-label">Logo</label>
-                        <div class="flex items-start gap-4">
-                            <div class="w-28 h-16 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
-                                    <img src="<?php echo e($curLogo); ?>" class="h-full w-full object-contain p-1">
-                                <?php else: ?>
-                                    <span class="text-xs text-gray-300">No logo</span>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                            </div>
-                            <div class="flex-1">
-                                <input type="file" name="brand_logo" accept="image/*"
-                                       class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                                <p class="text-xs text-gray-400 mt-1">PNG, SVG, or JPEG · Max 2 MB · Recommended: 220×56 px</p>
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
-                                    <label class="flex items-center gap-1.5 mt-2 cursor-pointer text-xs text-red-400 hover:text-red-600">
-                                        <input type="checkbox" name="remove_logo" value="1" class="rounded">
-                                        Remove current logo
-                                    </label>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        
+                        <div class="form-group">
+                            <label class="form-label">Logo</label>
+                            <div class="flex items-start gap-3">
+                                <div class="w-24 h-14 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
+                                        <img src="<?php echo e($curLogo); ?>" class="h-full w-full object-contain p-1">
+                                    <?php else: ?>
+                                        <span class="text-xs text-gray-300">No logo</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <input type="file" name="brand_logo" accept="image/*"
+                                           class="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full">
+                                    <p class="text-xs text-gray-400 mt-1">PNG, SVG, JPEG · Max 2 MB</p>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($curLogo): ?>
+                                        <label class="flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs text-red-400 hover:text-red-600">
+                                            <input type="checkbox" name="remove_logo" value="1" class="rounded">
+                                            Remove logo
+                                        </label>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
                             </div>
                         </div>
+
+                        
+                        <div class="form-group">
+                            <label class="form-label">Favicon</label>
+                            <div class="flex items-start gap-3">
+                                <div class="w-14 h-14 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($all['brand_favicon'] ?? null): ?>
+                                        <img src="<?php echo e($curFavicon); ?>" alt="Favicon" class="w-8 h-8 object-contain">
+                                    <?php else: ?>
+                                        <span class="text-xs text-gray-300">None</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <input type="file" name="brand_favicon" accept=".ico,.png,.jpg,.jpeg,.svg"
+                                           class="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full">
+                                    <p class="text-xs text-gray-400 mt-1">ICO, PNG, SVG · Max 512 KB</p>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($all['brand_favicon'] ?? null): ?>
+                                        <label class="flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs text-red-400 hover:text-red-600">
+                                            <input type="checkbox" name="remove_favicon" value="1" class="rounded">
+                                            Remove favicon
+                                        </label>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     

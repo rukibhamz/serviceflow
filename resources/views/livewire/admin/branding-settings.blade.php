@@ -47,6 +47,31 @@
                     @error('brandName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Favicon --}}
+                <div class="form-group">
+                    <label class="form-label">Favicon</label>
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                            @if($currentFavicon)
+                                <img src="{{ $currentFavicon }}" alt="Favicon" class="w-8 h-8 object-contain">
+                            @else
+                                <span class="text-xs text-gray-300">None</span>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <input type="file" wire:model="favicon" accept=".ico,.png,.jpg,.jpeg,.svg"
+                                   class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <p class="text-xs text-gray-400 mt-1">ICO, PNG, or SVG · Max 512 KB · Recommended: 32×32 px</p>
+                            @if($currentFavicon)
+                                <button type="button" wire:click="removeFavicon"
+                                        class="mt-2 text-xs text-red-400 hover:text-red-600">
+                                    Remove current favicon
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Logo --}}
                 <div class="form-group">
                     <label class="form-label">Logo</label>

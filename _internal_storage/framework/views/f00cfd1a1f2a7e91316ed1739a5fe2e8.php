@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <link rel="icon" href="<?php echo e(app(\App\Services\SettingService::class)->faviconUrl()); ?>" type="image/x-icon">
+    
     <link rel="stylesheet" href="<?php echo e(asset('css/design-system.css')); ?>">
     
     <style id="theme-vars"><?php echo $cssVars ?? ''; ?></style>

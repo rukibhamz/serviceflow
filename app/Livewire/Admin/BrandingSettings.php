@@ -21,6 +21,9 @@ class BrandingSettings extends Component
     public $logo = null;          // uploaded file (temp)
     public ?string $currentLogo = null;  // existing stored path
 
+    public $favicon = null;          // uploaded favicon (temp)
+    public ?string $currentFavicon = null;  // existing stored path
+
     public bool $saved = false;
 
     public function mount(SettingService $settings): void
@@ -31,6 +34,7 @@ class BrandingSettings extends Component
         $this->themePrimary = $all['theme_primary'] ?? '#1a4fa0';
         $this->themeAccent  = $all['theme_accent']  ?? '#f97316';
         $this->currentLogo  = $settings->logoUrl();
+        $this->currentFavicon = $settings->faviconUrl();
     }
 
     /** When a preset is selected, auto-fill the hex fields (unless custom). */
@@ -56,6 +60,15 @@ class BrandingSettings extends Component
             $this->logo = null;
         }
 
+        // Handle favicon upload
+        if ($this->favicon !== null) {
+            $this->validate(['favicon' => 'image|mimes:ico,png,jpg,jpeg,svg|max:512']);
+            /** @var \Illuminate\Http\UploadedFile $file */
+            $file = $this->favicon;
+            $this->currentFavicon = $settings->uploadFavicon($file);
+            $this->favicon = null;
+        }
+
         $settings->set([
             'brand_name'    => $this->brandName,
             'theme_preset'  => $this->themePreset,
@@ -77,6 +90,16 @@ class BrandingSettings extends Component
         }
         $settings->set(['brand_logo' => null]);
         $this->currentLogo = null;
+    }
+
+    public function removeFavicon(SettingService $settings): void
+    {
+        $path = $settings->get('brand_favicon');
+        if ($path) {
+            \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+        }
+        $settings->set(['brand_favicon' => null]);
+        $this->currentFavicon = null;
     }
 
     public function render(): \Illuminate\View\View

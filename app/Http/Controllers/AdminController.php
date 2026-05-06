@@ -31,6 +31,21 @@ class AdminController extends Controller
             $settings->set(['brand_logo' => null]);
         }
 
+        // Handle favicon upload
+        if ($request->hasFile('brand_favicon')) {
+            $request->validate(['brand_favicon' => 'file|mimes:ico,png,jpg,jpeg,svg|max:512']);
+            $settings->uploadFavicon($request->file('brand_favicon'));
+        }
+
+        // Handle favicon removal
+        if ($request->input('remove_favicon') === '1') {
+            $path = $settings->get('brand_favicon');
+            if ($path) {
+                \Illuminate\Support\Facades\Storage::disk('uploads')->delete($path);
+            }
+            $settings->set(['brand_favicon' => null]);
+        }
+
         $settings->set([
             'brand_name'    => $data['brand_name'],
             'theme_preset'  => $data['theme_preset'],

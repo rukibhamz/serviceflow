@@ -60,6 +60,33 @@ class SettingService
     }
 
     /**
+     * Handle favicon upload, save to uploads disk, persist the path, and return it.
+     */
+    public function uploadFavicon(\Illuminate\Http\UploadedFile $file): string
+    {
+        // Delete old favicon if exists
+        $old = $this->get('brand_favicon');
+        if ($old && Storage::disk('uploads')->exists($old)) {
+            Storage::disk('uploads')->delete($old);
+        }
+
+        $path = $file->storeAs('favicons', 'favicon.' . $file->getClientOriginalExtension(), 'uploads');
+        $this->set(['brand_favicon' => $path]);
+
+        return $path;
+    }
+
+    /** Return the public URL for the stored favicon, falling back to the default. */
+    public function faviconUrl(): string
+    {
+        $path = $this->get('brand_favicon');
+        if ($path && Storage::disk('uploads')->exists($path)) {
+            return Storage::disk('uploads')->url($path);
+        }
+        return asset('favicon.ico');
+    }
+
+    /**
      * Build CSS custom property overrides for the current theme,
      * to be injected inline into the <head>.
      */

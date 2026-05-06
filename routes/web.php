@@ -74,6 +74,8 @@ Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () 
     Route::get('/settings', fn () => view('agent.settings.index'))->name('settings.index');
     Route::post('/settings/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('settings.branding.save');
     Route::get('/profile', fn () => view('agent.settings.profile'))->name('profile');
+    Route::patch('/profile', [App\Http\Controllers\AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::patch('/profile/password', [App\Http\Controllers\AuthController::class, 'updatePassword'])->name('profile.password');
 });
 
 // Self-service portal
