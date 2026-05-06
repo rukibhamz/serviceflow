@@ -1,4 +1,5 @@
 <div>
+    <?php $ticketShowRoute = request()->routeIs('admin.*') ? 'admin.tickets.show' : 'agent.tickets.show'; ?>
     
     <div class="mb-4 flex flex-wrap gap-3">
         <input
@@ -64,13 +65,13 @@
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $tickets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ticket): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs text-gray-500">
-                            <a href="<?php echo e(route('agent.tickets.show', $ticket->ulid)); ?>" class="hover:underline">
+                            <a href="<?php echo e(route($ticketShowRoute, $ticket->ulid)); ?>" class="hover:underline">
                                 #<?php echo e($ticket->id); ?>
 
                             </a>
                         </td>
                         <td class="px-4 py-3">
-                            <a href="<?php echo e(route('agent.tickets.show', $ticket->ulid)); ?>" class="font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                            <a href="<?php echo e(route($ticketShowRoute, $ticket->ulid)); ?>" class="font-medium text-gray-900 hover:text-blue-600 hover:underline">
                                 <?php echo e($ticket->subject); ?>
 
                             </a>

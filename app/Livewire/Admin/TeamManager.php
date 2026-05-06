@@ -30,6 +30,28 @@ class TeamManager extends Component
     {
         if (request()->boolean('new')) {
             $this->isCreating = true;
+            return;
+        }
+
+        $editId = (int) request()->query('edit', 0);
+        if ($editId > 0) {
+            $team = Team::find($editId);
+            if ($team) {
+                $this->editingTeamId = $team->id;
+                $this->name = $team->name;
+                $this->description = (string) ($team->description ?? '');
+                $this->isCreating = true;
+            }
+            return;
+        }
+
+        $membersId = (int) request()->query('members', 0);
+        if ($membersId > 0) {
+            $team = Team::find($membersId);
+            if ($team) {
+                $this->selectedTeamId = $team->id;
+                $this->selectedAgents = $team->members()->pluck('users.id')->toArray();
+            }
         }
     }
 
@@ -45,6 +67,7 @@ class TeamManager extends Component
             ]);
 
             $this->reset(['name', 'description', 'isCreating']);
+            $this->resetPage();
             session()->flash('success', 'Team created successfully.');
         } catch (\Throwable $e) {
             Log::error('Team creation failed.', [
@@ -83,6 +106,7 @@ class TeamManager extends Component
         ]);
 
         $this->reset(['name', 'description', 'editingTeamId', 'isCreating']);
+        $this->resetPage();
         session()->flash('success', 'Team updated successfully.');
     }
 
@@ -99,6 +123,7 @@ class TeamManager extends Component
     public function deleteTeam(int $id): void
     {
         Team::findOrFail($id)->delete();
+        $this->resetPage();
         session()->flash('success', 'Team deleted successfully.');
     }
 

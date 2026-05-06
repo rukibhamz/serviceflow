@@ -1,4 +1,5 @@
 <div>
+    @php $ticketShowRoute = request()->routeIs('admin.*') ? 'admin.tickets.show' : 'agent.tickets.show'; @endphp
     {{-- Filters --}}
     <div class="mb-4 flex flex-wrap gap-3">
         <input
@@ -64,12 +65,12 @@
                 @forelse($tickets as $ticket)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs text-gray-500">
-                            <a href="{{ route('agent.tickets.show', $ticket->ulid) }}" class="hover:underline">
+                            <a href="{{ route($ticketShowRoute, $ticket->ulid) }}" class="hover:underline">
                                 #{{ $ticket->id }}
                             </a>
                         </td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('agent.tickets.show', $ticket->ulid) }}" class="font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                            <a href="{{ route($ticketShowRoute, $ticket->ulid) }}" class="font-medium text-gray-900 hover:text-blue-600 hover:underline">
                                 {{ $ticket->subject }}
                             </a>
                         </td>

@@ -6,10 +6,10 @@
 
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-800">Tenants</h2>
-        <button wire:click="$set('showForm', true)"
-                class="btn-ds primary">
+        <a href="<?php echo e(route('admin.tenants', ['new' => 1])); ?>"
+                class="btn-ds primary inline-flex items-center">
             + Provision Tenant
-        </button>
+        </a>
     </div>
 
     

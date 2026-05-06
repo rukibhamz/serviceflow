@@ -10,9 +10,9 @@
                placeholder="Search users…"
                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
         <div class="ml-auto">
-            <button type="button" wire:click="startInvite" class="btn-ds primary inline-flex items-center">
+            <a href="{{ route('admin.users', ['new' => 1]) }}" class="btn-ds primary inline-flex items-center">
                 + Invite User
-            </button>
+            </a>
         </div>
     </div>
 

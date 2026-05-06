@@ -28,6 +28,13 @@ class TenantManager extends Component
         'adminPassword' => 'required|string|min:8',
     ];
 
+    public function mount(): void
+    {
+        if (request()->boolean('new')) {
+            $this->showForm = true;
+        }
+    }
+
     public function provision(): void
     {
         $this->validate();

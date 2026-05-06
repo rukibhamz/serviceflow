@@ -214,10 +214,17 @@
             <!-- ── Main content ── -->
             <div class="main-content">
                 <div class="page-header">
-                    <?php echo $__env->yieldContent('page-header'); ?>
+                    <?php if (! empty(trim($__env->yieldContent('page-header')))): ?>
+                        <?php echo $__env->yieldContent('page-header'); ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
                 <div class="page-body">
-                    <?php echo $__env->yieldContent('content'); ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($slot)): ?>
+                        <?php echo e($slot); ?>
+
+                    <?php else: ?>
+                        <?php echo $__env->yieldContent('content'); ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>

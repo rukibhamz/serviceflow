@@ -1,13 +1,16 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Team Management</h1>
-        <button type="button" wire:click="startCreate" class="btn-ds primary inline-flex items-center">
+        <a href="{{ route('admin.teams', ['new' => 1]) }}" class="btn-ds primary inline-flex items-center">
             Create New Team
-        </button>
+        </a>
     </div>
 
     @if(session('success'))
         <div class="mb-4 rounded bg-green-100 px-4 py-2 text-sm text-green-800">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="mb-4 rounded bg-red-100 px-4 py-2 text-sm text-red-800">{{ session('error') }}</div>
     @endif
 
     {{-- Create/Edit Modal --}}
@@ -15,20 +18,24 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
                 <h2 class="mb-4 text-lg font-semibold">{{ $editingTeamId ? 'Edit Team' : 'Create Team' }}</h2>
-                <form wire:submit.prevent="saveTeam" class="space-y-4">
+                <form method="POST" action="{{ $editingTeamId ? route('admin.teams.update', $editingTeamId) : route('admin.teams.store') }}" wire:submit.prevent="saveTeam" class="space-y-4">
+                    @csrf
+                    @if($editingTeamId)
+                        @method('PATCH')
+                    @endif
                     @error('general') <p class="rounded bg-red-100 px-3 py-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Team Name</label>
-                        <input type="text" wire:model.defer="name" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <input type="text" wire:model.defer="name" name="name" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                         @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea wire:model.defer="description" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        <textarea wire:model.defer="description" name="description" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                         @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" wire:click="$set('isCreating', false)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</button>
+                        <a href="{{ route('admin.teams') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
                         <button type="submit" class="btn-ds primary">
                             {{ $editingTeamId ? 'Update' : 'Create' }}
                         </button>
@@ -43,23 +50,26 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
                 <h2 class="mb-4 text-lg font-semibold">Manage Team Members</h2>
-                <div class="max-h-96 overflow-y-auto space-y-2 pr-2">
-                    @foreach($allAgents as $agent)
-                        <label class="flex items-center gap-3 rounded border border-gray-100 p-2 hover:bg-gray-50 cursor-pointer">
-                            <input type="checkbox" wire:model="selectedAgents" value="{{ $agent->id }}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ $agent->name }}</p>
-                                <p class="text-xs text-gray-500">{{ $agent->email }}</p>
-                            </div>
-                        </label>
-                    @endforeach
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('selectedTeamId', 0)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</button>
-                    <button wire:click="saveMembers" class="btn-ds primary">
-                        Save Members
-                    </button>
-                </div>
+                <form method="POST" action="{{ route('admin.teams.members.update', $selectedTeamId) }}">
+                    @csrf
+                    <div class="max-h-96 overflow-y-auto space-y-2 pr-2">
+                        @foreach($allAgents as $agent)
+                            <label class="flex items-center gap-3 rounded border border-gray-100 p-2 hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="selectedAgents[]" value="{{ $agent->id }}" @checked(in_array($agent->id, $selectedAgents, true)) class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">{{ $agent->name }}</p>
+                                    <p class="text-xs text-gray-500">{{ $agent->email }}</p>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <a href="{{ route('admin.teams') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
+                        <button type="submit" class="btn-ds primary">
+                            Save Members
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif
@@ -81,9 +91,13 @@
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $team->description ?: '—' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $team->members_count }} agents</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                            <button wire:click="manageMembers({{ $team->id }})" class="text-blue-600 hover:text-blue-900">Members</button>
-                            <button wire:click="editTeam({{ $team->id }})" class="text-indigo-600 hover:text-indigo-900">Edit</button>
-                            <button wire:click="deleteTeam({{ $team->id }})" class="text-red-600 hover:text-red-900" onclick="confirm('Delete this team?') || event.stopImmediatePropagation()">Delete</button>
+                            <a href="{{ route('admin.teams', ['members' => $team->id]) }}" class="text-blue-600 hover:text-blue-900">Members</a>
+                            <a href="{{ route('admin.teams', ['edit' => $team->id]) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            <form method="POST" action="{{ route('admin.teams.destroy', $team) }}" class="inline" onsubmit="return confirm('Delete this team?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 @endforeach

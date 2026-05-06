@@ -31,6 +31,24 @@
                 @if($ticket->description)
                     <div class="mt-4 text-sm text-gray-700 whitespace-pre-wrap">{{ $ticket->description }}</div>
                 @endif
+                @if($ticket->hasMedia('attachments'))
+                    <div class="mt-4">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Attachments</p>
+                        <div class="mt-2 flex flex-wrap gap-3">
+                            @foreach($ticket->getMedia('attachments') as $media)
+                                @if(str_starts_with($media->mime_type ?? '', 'image/'))
+                                    <a href="{{ $media->getUrl() }}" target="_blank" class="block">
+                                        <img src="{{ $media->getUrl() }}" alt="{{ $media->name }}" class="h-24 w-24 rounded border border-gray-200 object-cover hover:opacity-90" />
+                                    </a>
+                                @else
+                                    <a href="{{ $media->getUrl() }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-blue-600 shadow-sm border border-gray-200 hover:bg-gray-50">
+                                        📎 {{ $media->name }}
+                                    </a>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Comment thread --}}

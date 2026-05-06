@@ -2,12 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Team;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
+    public function storeTeam(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        Team::create([
+            'tenant_id' => Auth::user()?->tenant_id,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        return redirect()->route('admin.teams')->with('success', 'Team created successfully.');
+    }
+
+    public function updateTeam(Request $request, Team $team): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $team->update([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        return redirect()->route('admin.teams')->with('success', 'Team updated successfully.');
+    }
+
+    public function updateTeamMembers(Request $request, Team $team): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'selectedAgents' => 'array',
+            'selectedAgents.*' => 'integer|exists:users,id',
+        ]);
+
+        $team->members()->sync($data['selectedAgents'] ?? []);
+
+        return redirect()->route('admin.teams')->with('success', 'Team members updated.');
+    }
+
+    public function destroyTeam(Team $team): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            DB::transaction(function () use ($team) {
+                // Clear relationships first to avoid FK issues in mixed DB states.
+                $team->members()->detach();
+                $team->tickets()->update(['team_id' => null]);
+                $team->delete();
+            });
+
+            return redirect()->route('admin.teams')->with('success', 'Team deleted successfully.');
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.teams')->with('error', 'Unable to delete team right now. Please try again.');
+        }
+    }
+
     public function saveBranding(Request $request, SettingService $settings): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([

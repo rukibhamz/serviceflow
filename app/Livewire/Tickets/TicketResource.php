@@ -31,6 +31,7 @@ class TicketResource extends Component
     public array   $aiSuggestions = [];
     public bool    $aiLoading     = false;
     public array   $otherViewers  = [];
+    public string $routePrefix = 'agent';
 
     public function mount(Ticket $ticket): void
     {
@@ -38,6 +39,7 @@ class TicketResource extends Component
         $this->newStatus = $ticket->status;
         $this->newPriority = $ticket->priority;
         $this->newAssigneeId = (string) ($ticket->assignee_id ?? '');
+        $this->routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent';
         $this->keepAlive();
     }
 
@@ -161,7 +163,7 @@ class TicketResource extends Component
 
         app(MergeTicketsAction::class)->execute($target, $this->ticket);
 
-        $this->redirect(route('agent.tickets.show', $target->ulid));
+        $this->redirect(route($this->routePrefix . '.tickets.show', $target->ulid));
     }
 
     // ── AI Assist ─────────────────────────────────────────────────────────────

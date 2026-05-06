@@ -67,6 +67,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
 
     // People
     Route::get('/teams', \App\Livewire\Admin\TeamManager::class)->name('teams');
+    Route::post('/teams', [App\Http\Controllers\AdminController::class, 'storeTeam'])->name('teams.store');
+    Route::patch('/teams/{team}', [App\Http\Controllers\AdminController::class, 'updateTeam'])->name('teams.update');
+    Route::post('/teams/{team}/members', [App\Http\Controllers\AdminController::class, 'updateTeamMembers'])->name('teams.members.update');
+    Route::delete('/teams/{team}', [App\Http\Controllers\AdminController::class, 'destroyTeam'])->name('teams.destroy');
     Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
     Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users');
 
@@ -75,9 +79,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
 
     // Tickets
     Route::get('/tickets', fn () => view('admin.tickets.index'))->name('tickets.index');
+    Route::post('/tickets', [App\Http\Controllers\TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
-    Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('agent.tickets.show', compact('ticket')))->name('tickets.show');
+    Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('admin.tickets.show', compact('ticket')))->name('tickets.show');
 
     // ITSM
     Route::get('/changes', \App\Livewire\Admin\ChangeManager::class)->name('changes.index');
@@ -117,6 +122,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
 Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')->group(function () {
     Route::get('/dashboard', fn () => view('agent.dashboard'))->name('dashboard');
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
+    Route::post('/tickets', [App\Http\Controllers\TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
     Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
     Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('agent.tickets.show', compact('ticket')))->name('tickets.show');

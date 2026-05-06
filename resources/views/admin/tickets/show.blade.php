@@ -1,11 +1,11 @@
-@extends('layouts.agent')
+@extends('layouts.admin')
 
 @section('content')
     @php
         $backRoute = match($ticket->type) {
-            'problem' => 'agent.problems.index',
-            'change' => 'agent.changes.index',
-            default => 'agent.tickets.index',
+            'problem' => 'admin.problems.index',
+            'change' => 'admin.changes.index',
+            default => 'admin.tickets.index',
         };
         $backLabel = match($ticket->type) {
             'problem' => 'Back to problems',
@@ -18,3 +18,4 @@
     </div>
     <livewire:tickets.ticket-resource :ticket="$ticket" />
 @endsection
+

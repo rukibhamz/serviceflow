@@ -4,7 +4,7 @@
             <div class="page-title">Problem Management</div>
             <div class="page-sub">Identify recurring incidents and manage root cause analysis</div>
         </div>
-        <a href="<?php echo e(route('admin.tickets.create')); ?>?type=problem" class="btn-ds primary">+ New Problem</a>
+        <a href="<?php echo e(route('admin.tickets.create')); ?>?type=problem" class="btn-ds primary">+ Add New Problem</a>
     </div>
 
     <div class="stats-ds mb-2">
