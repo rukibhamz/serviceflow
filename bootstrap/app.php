@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
+        // Run install check on every web request
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAppIsInstalled::class,
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'install/*',
             'logout',

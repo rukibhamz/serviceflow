@@ -14,7 +14,7 @@ class EnvironmentChecker
         return [
             $this->checkPhpVersion(),
             ...$this->checkExtensions(),
-            $this->checkDirectoryWritable('storage', storage_path()),
+            $this->checkDirectoryWritable('_internal_storage', storage_path()),
             $this->checkDirectoryWritable('bootstrap/cache', base_path('bootstrap/cache')),
             $this->checkEnvFile(),
             $this->checkAppKey(),

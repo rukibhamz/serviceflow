@@ -101,7 +101,7 @@ Route::prefix('portal/csat')->name('portal.csat.')->group(function () {
     Route::post('/{token}/feedback', [PortalController::class, 'csatStoreFeedback'])->name('feedback.store');
 });
 
-Route::prefix('install')->middleware(\App\Http\Middleware\InstallerMiddleware::class)->group(function () {
+Route::prefix('install')->group(function () {
     Route::get('/', [InstallerController::class, 'index'])->name('installer.index');
     Route::get('/database', [InstallerController::class, 'database'])->name('installer.database');
     Route::post('/database/test', [InstallerController::class, 'testDatabase'])->name('installer.database.test');
