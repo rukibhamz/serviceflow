@@ -78,29 +78,14 @@ class EnvironmentChecker
 
     private function checkEnvFile(): array
     {
-        $envPath     = base_path('.env');
-        $examplePath = base_path('.env.example');
-
-        if (file_exists($envPath)) {
-            return [
-                'name'    => '.env File',
-                'status'  => 'pass',
-                'message' => '.env file exists',
-            ];
-        }
-
-        if (file_exists($examplePath)) {
-            return [
-                'name'    => '.env File',
-                'status'  => 'warn',
-                'message' => '.env not found but .env.example is available — it will be copied during installation',
-            ];
-        }
+        $envPath = base_path('.env');
 
         return [
             'name'    => '.env File',
-            'status'  => 'fail',
-            'message' => 'Neither .env nor .env.example found',
+            'status'  => file_exists($envPath) ? 'pass' : 'fail',
+            'message' => file_exists($envPath)
+                ? '.env file exists (auto-created from .env.example)'
+                : '.env file could not be created — check file system permissions',
         ];
     }
 
@@ -108,18 +93,12 @@ class EnvironmentChecker
     {
         $key = env('APP_KEY', '');
 
-        if (! empty($key)) {
-            return [
-                'name'    => 'APP_KEY',
-                'status'  => 'pass',
-                'message' => 'APP_KEY is set',
-            ];
-        }
-
         return [
             'name'    => 'APP_KEY',
-            'status'  => 'warn',
-            'message' => 'APP_KEY is not set — it will be generated during installation',
+            'status'  => ! empty($key) ? 'pass' : 'fail',
+            'message' => ! empty($key)
+                ? 'APP_KEY is set (auto-generated)'
+                : 'APP_KEY could not be generated — check file system permissions',
         ];
     }
 }
