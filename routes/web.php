@@ -24,9 +24,36 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login')->middleware('guest');
+// Convenience redirects — /agent and /admin go straight to the right dashboard
+Route::get('/agent', function () {
+    if (! auth()->check()) return redirect()->route('login');
+    $user = auth()->user();
+    if ($user->hasRole('agent') || $user->role === 'agent' || $user->hasRole('admin') || $user->role === 'admin') {
+        return redirect()->route('agent.dashboard');
+    }
+    return redirect()->route('portal.index');
+})->middleware('auth');
 
+Route::get('/admin', function () {
+    if (! auth()->check()) return redirect()->route('login');
+    $user = auth()->user();
+    if ($user->hasRole('admin') || $user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    if ($user->hasRole('agent') || $user->role === 'agent') {
+        return redirect()->route('agent.dashboard');
+    }
+    return redirect()->route('portal.index');
+})->middleware('auth');
+
+Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'store'])->name('login.store')->middleware('guest');
+
+// SSO routes
+Route::middleware('guest')->prefix('auth')->name('auth.sso.')->group(function () {
+    Route::get('/{provider}/redirect', [App\Http\Controllers\SocialAuthController::class, 'redirect'])->name('redirect');
+    Route::get('/{provider}/callback', [App\Http\Controllers\SocialAuthController::class, 'callback'])->name('callback');
+});
 
 Route::match(['GET', 'POST'], '/logout', function () {
     auth()->logout();
@@ -37,14 +64,57 @@ Route::match(['GET', 'POST'], '/logout', function () {
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' => 'admin.'], function () {
     Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
-    Route::get('/branding', fn () => view('admin.branding'))->name('branding');
-    Route::post('/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('branding.save');
-    Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
+
+    // People
     Route::get('/teams', \App\Livewire\Admin\TeamManager::class)->name('teams');
+    Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
+    Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users');
+
+    // SLA
+    Route::get('/sla', \App\Livewire\Admin\SlaManager::class)->name('sla');
+
+    // Tickets
+    Route::get('/tickets', fn () => view('admin.tickets.index'))->name('tickets.index');
+    Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
+    Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
+    Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('agent.tickets.show', compact('ticket')))->name('tickets.show');
+
+    // ITSM
+    Route::get('/changes', \App\Livewire\Admin\ChangeManager::class)->name('changes.index');
+    Route::get('/problems', \App\Livewire\Admin\ProblemManager::class)->name('problems.index');
+    Route::get('/assets', fn () => view('admin.itsm.assets'))->name('assets.index');
+
+    // Knowledge base
+    Route::get('/knowledge', fn () => view('admin.knowledge.index'))->name('knowledge.index');
+    Route::get('/knowledge/create', fn () => view('admin.knowledge.create'))->name('knowledge.create');
+    Route::get('/knowledge/{article:slug}/edit', fn (\App\Models\KnowledgeArticle $article) => view('admin.knowledge.edit', compact('article')))->name('knowledge.edit');
+    Route::get('/knowledge/{article:slug}', fn (\App\Models\KnowledgeArticle $article) => view('admin.knowledge.show', compact('article')))->name('knowledge.show');
+    Route::post('/knowledge/{article:slug}/vote', function (\App\Models\KnowledgeArticle $article, \Illuminate\Http\Request $request) {
+        app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
+        return back();
+    })->name('knowledge.vote');
+
+    // Automation & Reports
+    Route::get('/automation', fn () => view('admin.automation.index'))->name('automation.index');
+    Route::get('/reports', fn () => view('admin.reports.index'))->name('reports.index');
+
+    // Configuration
+    Route::get('/branding', fn () => redirect()->route('admin.settings.index'))->name('branding');
+    Route::post('/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('branding.save');
+    Route::get('/settings', fn () => view('admin.settings.index'))->name('settings.index');
+    Route::post('/settings/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('settings.branding.save');
+    Route::post('/settings/sso', [App\Http\Controllers\AdminController::class, 'saveSsoSettings'])->name('settings.sso.save');
+    Route::post('/settings/mail', [App\Http\Controllers\AdminController::class, 'saveMailSettings'])->name('settings.mail.save');
+    Route::post('/settings/mail/test', [App\Http\Controllers\AdminController::class, 'testMailSettings'])->name('settings.mail.test');
+
+    // Profile
+    Route::get('/profile', fn () => view('admin.profile'))->name('profile');
+    Route::patch('/profile', [App\Http\Controllers\AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::patch('/profile/password', [App\Http\Controllers\AuthController::class, 'updatePassword'])->name('profile.password');
 });
 
 
-Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () {
+Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')->group(function () {
     Route::get('/dashboard', fn () => view('agent.dashboard'))->name('dashboard');
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
@@ -61,22 +131,24 @@ Route::middleware(['auth'])->prefix('agent')->name('agent.')->group(function () 
         return back();
     })->name('knowledge.vote');
 
-    // ITSM stubs
+    // ITSM
     Route::get('/changes', fn () => view('agent.itsm.changes'))->name('changes.index');
     Route::get('/problems', fn () => view('agent.itsm.problems'))->name('problems.index');
     Route::get('/assets', fn () => view('agent.itsm.assets'))->name('assets.index');
 
-    // Automation & Reports stubs
+    // Agent analytics
     Route::get('/automation', fn () => view('agent.automation.index'))->name('automation.index');
     Route::get('/reports', fn () => view('agent.reports.index'))->name('reports.index');
 
-    // Settings & Profile stubs
-    Route::get('/settings', fn () => view('agent.settings.index'))->name('settings.index');
-    Route::post('/settings/branding', [App\Http\Controllers\AdminController::class, 'saveBranding'])->name('settings.branding.save');
+    // Profile only — no system settings for agents
     Route::get('/profile', fn () => view('agent.settings.profile'))->name('profile');
     Route::patch('/profile', [App\Http\Controllers\AuthController::class, 'updateProfile'])->name('profile.update');
     Route::patch('/profile/password', [App\Http\Controllers\AuthController::class, 'updatePassword'])->name('profile.password');
 });
+
+// Invitation acceptance (public)
+Route::get('/invite/{token}', [App\Http\Controllers\InvitationController::class, 'show'])->name('invite.show');
+Route::post('/invite/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invite.accept');
 
 // Self-service portal
 Route::prefix('portal')->name('portal.')->group(function () {

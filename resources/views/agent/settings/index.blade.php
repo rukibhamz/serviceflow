@@ -16,6 +16,7 @@
     $curLogo    = $svc->logoUrl();
     $curFavicon = $svc->faviconUrl();
     $presets    = \App\Services\SettingService::presets();
+    $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent';
 @endphp
 <div class="space-y-6">
 
@@ -54,7 +55,7 @@
         @endif
 
         <form method="POST"
-              action="{{ route('agent.settings.branding.save') }}"
+              action="{{ route($routePrefix . '.settings.branding.save') }}"
               enctype="multipart/form-data"
               class="space-y-6">
             @csrf

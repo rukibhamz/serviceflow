@@ -31,7 +31,8 @@
             <div class="bg-white min-h-[80px] p-1">
                 <div class="text-xs font-medium text-gray-400 mb-1">{{ $day }}</div>
                 @foreach ($dayChanges as $change)
-                    <a href="{{ route('agent.tickets.show', $change->ulid) }}"
+                    @php $ticketShowRoute = request()->routeIs('admin.*') ? 'admin.tickets.show' : 'agent.tickets.show'; @endphp
+                    <a href="{{ route($ticketShowRoute, $change->ulid) }}"
                        class="block text-xs truncate rounded px-1 py-0.5 mb-0.5
                               {{ $change->risk_level === 'high' ? 'bg-red-100 text-red-700' : ($change->risk_level === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}"
                        title="{{ $change->subject }}">

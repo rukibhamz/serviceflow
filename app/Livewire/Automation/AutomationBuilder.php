@@ -32,6 +32,10 @@ class AutomationBuilder extends Component
     public function mount(): void
     {
         $this->resetForm();
+
+        if (request()->boolean('new')) {
+            $this->showForm = true;
+        }
     }
 
     // ── Condition management ──────────────────────────────────────────────────

@@ -37,12 +37,11 @@
     // Avg resolution time (hours) for resolved tickets this month
     $avgResolution = Ticket::whereIn('status', ['resolved','closed'])
         ->where('updated_at', '>=', $startMonth)
-        ->whereNotNull('first_response_at')
         ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at)) as avg_hours')
         ->value('avg_hours');
 
-    // SLA breached this month
-    $slaBreached = Ticket::where('sla_breached', true)
+    // SLA breached this month — check sla_timers table
+    $slaBreached = \App\Models\SlaTimer::where('breached', true)
         ->where('created_at', '>=', $startMonth)->count();
 
     // Top agents by resolved tickets this month

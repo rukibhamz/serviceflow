@@ -46,6 +46,13 @@ class AssetList extends Component
         'status' => 'required|string',
     ];
 
+    public function mount(): void
+    {
+        if (request()->boolean('new')) {
+            $this->showForm = true;
+        }
+    }
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -141,7 +148,7 @@ class AssetList extends Component
         $this->importFile    = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId    = null;
         $this->name         = '';

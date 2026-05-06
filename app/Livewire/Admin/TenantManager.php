@@ -45,6 +45,8 @@ class TenantManager extends Component
             $this->resetForm();
         } catch (\InvalidArgumentException $e) {
             $this->addError('subdomain', $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->addError('name', 'Provision failed: ' . $e->getMessage());
         }
     }
 
@@ -74,6 +76,7 @@ class TenantManager extends Component
     {
         $tenants = Tenant::withTrashed()->latest()->paginate(20);
 
-        return view('livewire.admin.tenant-manager', compact('tenants'));
+        return view('livewire.admin.tenant-manager', compact('tenants'))
+            ->layout('layouts.admin');
     }
 }

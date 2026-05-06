@@ -40,7 +40,8 @@
 
                                 </span>
                             </div>
-                            <a href="<?php echo e(route('agent.tickets.show', $ticket->ulid)); ?>" class="block font-medium text-gray-900 leading-snug mb-2 hover:text-blue-600 hover:underline">
+                            <?php $ticketShowRoute = request()->routeIs('admin.*') ? 'admin.tickets.show' : 'agent.tickets.show'; ?>
+                            <a href="<?php echo e(route($ticketShowRoute, $ticket->ulid)); ?>" class="block font-medium text-gray-900 leading-snug mb-2 hover:text-blue-600 hover:underline">
                                 <?php echo e($ticket->subject); ?>
 
                             </a>
@@ -82,7 +83,6 @@ endif;
 unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     
-    <?php $__env->startPush('scripts'); ?>
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('kanbanBoard', () => ({
@@ -118,7 +118,6 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
             }))
         })
     </script>
-    <?php $__env->stopPush(); ?>
     
     <style>
         .minimal-scrollbar::-webkit-scrollbar {

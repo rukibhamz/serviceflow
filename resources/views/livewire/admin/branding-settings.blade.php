@@ -47,54 +47,59 @@
                     @error('brandName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                {{-- Favicon --}}
-                <div class="form-group">
-                    <label class="form-label">Favicon</label>
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
-                            @if($currentFavicon)
-                                <img src="{{ $currentFavicon }}" alt="Favicon" class="w-8 h-8 object-contain">
-                            @else
-                                <span class="text-xs text-gray-300">None</span>
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <input type="file" wire:model="favicon" accept=".ico,.png,.jpg,.jpeg,.svg"
-                                   class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                            <p class="text-xs text-gray-400 mt-1">ICO, PNG, or SVG · Max 512 KB · Recommended: 32×32 px</p>
-                            @if($currentFavicon)
-                                <button type="button" wire:click="removeFavicon"
-                                        class="mt-2 text-xs text-red-400 hover:text-red-600">
-                                    Remove current favicon
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                {{-- Logo & Favicon side by side --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                {{-- Logo --}}
-                <div class="form-group">
-                    <label class="form-label">Logo</label>
-                    <div class="flex items-start gap-4">
-                        <div class="w-28 h-16 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
-                            @if($currentLogo)
-                                <img src="{{ $currentLogo }}" class="h-full w-full object-contain p-1">
-                            @else
-                                <span class="text-xs text-gray-300">No logo</span>
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <input type="file" wire:model="logo" accept="image/*"
-                                   class="text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                            <p class="text-xs text-gray-400 mt-1">PNG, SVG, or JPEG · Max 2 MB · Recommended: 220×56 px</p>
-                            @if($currentLogo)
-                                <button type="button" wire:click="removeLogo"
-                                        class="mt-2 text-xs text-red-400 hover:text-red-600">
-                                    Remove current logo
-                                </button>
-                            @endif
+                    {{-- Logo --}}
+                    <div class="form-group">
+                        <label class="form-label">Logo</label>
+                        <div class="flex items-start gap-3">
+                            <div class="w-24 h-14 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                                @if($currentLogo)
+                                    <img src="{{ $currentLogo }}" class="h-full w-full object-contain p-1">
+                                @else
+                                    <span class="text-xs text-gray-300">No logo</span>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" wire:model="logo" accept="image/*"
+                                       class="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full">
+                                <p class="text-xs text-gray-400 mt-1">PNG, SVG, JPEG · Max 2 MB</p>
+                                @if($currentLogo)
+                                    <button type="button" wire:click="removeLogo"
+                                            class="mt-1.5 text-xs text-red-400 hover:text-red-600">
+                                        Remove logo
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
+
+                    {{-- Favicon --}}
+                    <div class="form-group">
+                        <label class="form-label">Favicon</label>
+                        <div class="flex items-start gap-3">
+                            <div class="w-14 h-14 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden flex-shrink-0">
+                                @if($currentFavicon)
+                                    <img src="{{ $currentFavicon }}" alt="Favicon" class="w-8 h-8 object-contain">
+                                @else
+                                    <span class="text-xs text-gray-300">None</span>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" wire:model="favicon" accept=".ico,.png,.jpg,.jpeg,.svg"
+                                       class="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full">
+                                <p class="text-xs text-gray-400 mt-1">ICO, PNG, SVG · Max 512 KB</p>
+                                @if($currentFavicon)
+                                    <button type="button" wire:click="removeFavicon"
+                                            class="mt-1.5 text-xs text-red-400 hover:text-red-600">
+                                        Remove favicon
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 {{-- Preset swatches --}}

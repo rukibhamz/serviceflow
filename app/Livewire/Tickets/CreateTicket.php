@@ -26,6 +26,11 @@ class CreateTicket extends Component
     public function mount()
     {
         $this->requester_id = Auth::id();
+        // Allow pre-selecting type via query string e.g. ?type=problem
+        $requestedType = request()->query('type');
+        if ($requestedType && in_array($requestedType, ['incident', 'service_request', 'problem', 'change'])) {
+            $this->type = $requestedType;
+        }
     }
 
     public function save()
@@ -54,8 +59,9 @@ class CreateTicket extends Component
     public function render()
     {
         $users = User::orderBy('name')->get();
+        $layout = request()->is('admin/*') ? 'layouts.admin' : 'layouts.agent';
         return view('livewire.tickets.create-ticket', [
             'users' => $users
-        ])->layout('layouts.agent');
+        ])->layout($layout);
     }
 }

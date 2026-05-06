@@ -18,6 +18,7 @@ class User extends Authenticatable implements HasMedia
     use HasFactory, Notifiable, HasRoles, LogsActivity, InteractsWithMedia;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'email',
         'password',

@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -25,17 +26,41 @@ class TeamManager extends Component
         'description' => 'nullable|string|max:500',
     ];
 
+    public function mount(): void
+    {
+        if (request()->boolean('new')) {
+            $this->isCreating = true;
+        }
+    }
+
     public function createTeam(): void
     {
         $this->validate();
 
-        Team::create([
-            'name' => $this->name,
-            'description' => $this->description,
-        ]);
+        try {
+            Team::create([
+                'tenant_id' => auth()->user()?->tenant_id,
+                'name' => $this->name,
+                'description' => $this->description,
+            ]);
 
-        $this->reset(['name', 'description', 'isCreating']);
-        session()->flash('success', 'Team created successfully.');
+            $this->reset(['name', 'description', 'isCreating']);
+            session()->flash('success', 'Team created successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Team creation failed.', [
+                'message' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            $this->addError('general', 'Unable to create team right now. Please try again.');
+        }
+    }
+
+    public function startCreate(): void
+    {
+        $this->resetValidation();
+        $this->reset(['name', 'description', 'editingTeamId']);
+        $this->isCreating = true;
     }
 
     public function editTeam(int $id): void
@@ -59,6 +84,16 @@ class TeamManager extends Component
 
         $this->reset(['name', 'description', 'editingTeamId', 'isCreating']);
         session()->flash('success', 'Team updated successfully.');
+    }
+
+    public function saveTeam(): void
+    {
+        if ($this->editingTeamId > 0) {
+            $this->updateTeam();
+            return;
+        }
+
+        $this->createTeam();
     }
 
     public function deleteTeam(int $id): void
@@ -86,8 +121,8 @@ class TeamManager extends Component
     public function render()
     {
         return view('livewire.admin.team-manager', [
-            'teams' => Team::withCount('members')->paginate(10),
-            'allAgents' => User::role(['agent', 'manager', 'admin'])->orderBy('name')->get(),
-        ])->layout('layouts.agent');
+            'teams'     => Team::withCount('members')->latest('id')->paginate(10),
+            'allAgents' => User::whereIn('role', ['agent', 'admin'])->orWhereHas('roles', fn($q) => $q->whereIn('name', ['agent', 'admin']))->orderBy('name')->get(),
+        ])->layout('layouts.admin');
     }
 }

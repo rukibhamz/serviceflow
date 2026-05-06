@@ -5,6 +5,7 @@ namespace App\Services\Tenant;
 use App\Models\SlaPolicy;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -24,34 +25,42 @@ class TenantProvisioner
      */
     public function provision(array $data): array
     {
-        $subdomain = Str::slug($data['subdomain']);
+        return DB::transaction(function () use ($data) {
+            $subdomain = Str::slug($data['subdomain']);
 
-        if (Tenant::where('subdomain', $subdomain)->exists()) {
-            throw new \InvalidArgumentException("Subdomain '{$subdomain}' is already taken.");
-        }
+            if (Tenant::where('subdomain', $subdomain)->exists()) {
+                throw new \InvalidArgumentException("Subdomain '{$subdomain}' is already taken.");
+            }
 
-        // Create tenant record
-        $tenant = Tenant::create([
-            'name'      => $data['name'],
-            'subdomain' => $subdomain,
-            'is_active' => true,
-            'settings'  => $data['settings'] ?? [],
-        ]);
+            // Create tenant record
+            $tenant = Tenant::create([
+                'name'      => $data['name'],
+                'subdomain' => $subdomain,
+                'is_active' => true,
+                'settings'  => $data['settings'] ?? [],
+            ]);
 
-        // Create admin user scoped to this tenant
-        $admin = User::create([
-            'tenant_id' => $tenant->id,
-            'name'      => $data['admin_name'],
-            'email'     => $data['admin_email'],
-            'password'  => Hash::make($data['admin_password']),
-        ]);
+            // Create admin user scoped to this tenant
+            $admin = User::create([
+                'tenant_id' => $tenant->id,
+                'name'      => $data['admin_name'],
+                'email'     => $data['admin_email'],
+                'password'  => Hash::make($data['admin_password']),
+                'role'      => 'admin',
+            ]);
 
-        $admin->assignRole('admin');
+            // Keep Spatie role in sync if roles table is seeded.
+            try {
+                $admin->assignRole('admin');
+            } catch (\Throwable) {
+                // role column fallback already set; proceed.
+            }
 
-        // Seed default SLA policies for the tenant
-        $this->seedDefaultSla($tenant->id);
+            // Seed default SLA policies for the tenant
+            $this->seedDefaultSla($tenant->id);
 
-        return compact('tenant', 'admin');
+            return compact('tenant', 'admin');
+        });
     }
 
     /**

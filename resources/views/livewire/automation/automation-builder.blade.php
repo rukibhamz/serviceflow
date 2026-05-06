@@ -9,10 +9,6 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-800">Automation Rules</h2>
-        <button wire:click="newAutomation"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
-            + New Automation
-        </button>
     </div>
 
     {{-- Form --}}
@@ -123,7 +119,7 @@
             </label>
             <div class="flex gap-2">
                 <button wire:click="cancelForm" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button wire:click="save" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Save</button>
+                <button wire:click="save" class="btn-ds primary">Save</button>
             </div>
         </div>
     </div>

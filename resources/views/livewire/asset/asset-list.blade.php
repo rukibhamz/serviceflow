@@ -1,4 +1,5 @@
 <div class="space-y-4">
+    @php $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent'; @endphp
 
     @if (session('success'))
         <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded text-sm">{{ session('success') }}</div>
@@ -18,8 +19,8 @@
         <div class="ml-auto flex gap-2">
             <button wire:click="$set('showImport', true)"
                     class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Import CSV</button>
-            <button wire:click="newAsset"
-                    class="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">+ New Asset</button>
+            <a href="{{ route($routePrefix . '.assets.index', ['new' => 1]) }}"
+                    class="btn-ds primary inline-flex items-center">+ New Asset</a>
         </div>
     </div>
 
@@ -61,7 +62,7 @@
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
             <button wire:click="resetForm" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button wire:click="save" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Save</button>
+            <button wire:click="save" class="btn-ds primary">Save</button>
         </div>
     </div>
     @endif
@@ -86,7 +87,7 @@
         @endif
 
         <div class="flex gap-2">
-            <button wire:click="runImport" class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Import</button>
+            <button wire:click="runImport" class="btn-ds primary">Import</button>
             <button wire:click="$set('showImport', false)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Close</button>
         </div>
     </div>

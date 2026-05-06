@@ -6,7 +6,10 @@
 @endsection
 
 @section('content')
-@php $user = auth()->user(); @endphp
+@php
+    $user = auth()->user();
+    $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent';
+@endphp
 
 @if (session('profile_saved'))
 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
@@ -54,7 +57,7 @@
                 <div class="card-title">Personal Information</div>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('agent.profile.update') }}" class="space-y-4">
+                <form method="POST" action="{{ route($routePrefix . '.profile.update') }}" class="space-y-4">
                     @csrf
                     @method('PATCH')
 
@@ -94,7 +97,7 @@
                 <div class="card-title">Change Password</div>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('agent.profile.password') }}" class="space-y-4">
+                <form method="POST" action="{{ route($routePrefix . '.profile.password') }}" class="space-y-4">
                     @csrf
                     @method('PATCH')
 

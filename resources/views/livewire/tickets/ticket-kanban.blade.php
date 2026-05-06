@@ -38,7 +38,8 @@
                                     {{ $ticket->priority }}
                                 </span>
                             </div>
-                            <a href="{{ route('agent.tickets.show', $ticket->ulid) }}" class="block font-medium text-gray-900 leading-snug mb-2 hover:text-blue-600 hover:underline">
+                            @php $ticketShowRoute = request()->routeIs('admin.*') ? 'admin.tickets.show' : 'agent.tickets.show'; @endphp
+                            <a href="{{ route($ticketShowRoute, $ticket->ulid) }}" class="block font-medium text-gray-900 leading-snug mb-2 hover:text-blue-600 hover:underline">
                                 {{ $ticket->subject }}
                             </a>
                             <div class="flex justify-between items-center text-xs text-gray-500">
@@ -69,8 +70,7 @@
         </div>
     @enderror
 
-    {{-- Require Alpine.js to be globally accessible if not already setup appropriately --}}
-    @push('scripts')
+    {{-- Alpine kanban script --}}
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('kanbanBoard', () => ({
@@ -106,7 +106,6 @@
             }))
         })
     </script>
-    @endpush
     
     <style>
         .minimal-scrollbar::-webkit-scrollbar {

@@ -1,4 +1,7 @@
 <div class="space-y-4">
+    @php
+        $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent';
+    @endphp
 
     @if (session('success'))
         <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded text-sm">{{ session('success') }}</div>
@@ -16,9 +19,11 @@
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
         </select>
-        <div class="ml-auto">
-            <a href="{{ route('agent.tickets.create') }}?type=problem" class="btn-ds primary">+ New Problem</a>
-        </div>
+        @if($routePrefix === 'agent')
+            <div class="ml-auto">
+                <a href="{{ route($routePrefix . '.tickets.create') }}?type=problem" class="btn-ds primary">+ New Problem</a>
+            </div>
+        @endif
     </div>
 
     {{-- Root cause panel --}}
@@ -103,7 +108,7 @@
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3">
-                        <a href="{{ route('agent.tickets.show', $problem->ulid) }}" class="font-medium text-brand hover:underline">
+                        <a href="{{ route($routePrefix . '.tickets.show', $problem->ulid) }}" class="font-medium text-brand hover:underline">
                             {{ $problem->subject }}
                         </a>
                         @if ($problem->custom_fields['root_cause'] ?? null)
@@ -134,7 +139,7 @@
                     <td class="px-4 py-3 text-right space-x-2">
                         <button wire:click="openRootCause({{ $problem->id }})" class="text-xs text-orange-500 hover:underline">RCA</button>
                         <button wire:click="openLinkPanel({{ $problem->id }})" class="text-xs text-indigo-600 hover:underline">Incidents</button>
-                        <a href="{{ route('agent.tickets.show', $problem->ulid) }}" class="text-xs text-gray-500 hover:underline">View</a>
+                        <a href="{{ route($routePrefix . '.tickets.show', $problem->ulid) }}" class="text-xs text-gray-500 hover:underline">View</a>
                     </td>
                 </tr>
                 @empty

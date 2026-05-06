@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Team Management</h1>
-        <button wire:click="$set('isCreating', true)" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button type="button" wire:click="startCreate" class="btn-ds primary inline-flex items-center">
             Create New Team
         </button>
     </div>
@@ -15,24 +15,25 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
             <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
                 <h2 class="mb-4 text-lg font-semibold">{{ $editingTeamId ? 'Edit Team' : 'Create Team' }}</h2>
-                <div class="space-y-4">
+                <form wire:submit.prevent="saveTeam" class="space-y-4">
+                    @error('general') <p class="rounded bg-red-100 px-3 py-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Team Name</label>
-                        <input type="text" wire:model="name" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <input type="text" wire:model.defer="name" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                         @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea wire:model="description" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        <textarea wire:model.defer="description" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                         @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-                </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('isCreating', false)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</button>
-                    <button wire:click="{{ $editingTeamId ? 'updateTeam' : 'createTeam' }}" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                        {{ $editingTeamId ? 'Update' : 'Create' }}
-                    </button>
-                </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" wire:click="$set('isCreating', false)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</button>
+                        <button type="submit" class="btn-ds primary">
+                            {{ $editingTeamId ? 'Update' : 'Create' }}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif
@@ -55,7 +56,7 @@
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
                     <button wire:click="$set('selectedTeamId', 0)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</button>
-                    <button wire:click="saveMembers" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    <button wire:click="saveMembers" class="btn-ds primary">
                         Save Members
                     </button>
                 </div>

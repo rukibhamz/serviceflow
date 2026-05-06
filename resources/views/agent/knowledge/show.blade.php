@@ -1,8 +1,9 @@
 @extends('layouts.agent')
 
 @section('content')
+    @php $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent'; @endphp
     <div class="mb-4">
-        <a href="{{ route('agent.knowledge.index') }}" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to KB</a>
+        <a href="{{ route($routePrefix . '.knowledge.index') }}" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to KB</a>
     </div>
 
     <article class="mx-auto max-w-3xl">
@@ -27,7 +28,7 @@
         <div class="mt-8 border-t pt-6">
             <p class="mb-3 text-sm font-medium text-gray-700">Was this article helpful?</p>
             <div class="flex gap-3">
-                <form method="POST" action="{{ route('knowledge.vote', $article->slug) }}">
+                <form method="POST" action="{{ route($routePrefix . '.knowledge.vote', $article->slug) }}">
                     @csrf
                     <input type="hidden" name="helpful" value="1" />
                     <button type="submit"
@@ -35,7 +36,7 @@
                         👍 Yes ({{ $article->helpful_votes }})
                     </button>
                 </form>
-                <form method="POST" action="{{ route('knowledge.vote', $article->slug) }}">
+                <form method="POST" action="{{ route($routePrefix . '.knowledge.vote', $article->slug) }}">
                     @csrf
                     <input type="hidden" name="helpful" value="0" />
                     <button type="submit"

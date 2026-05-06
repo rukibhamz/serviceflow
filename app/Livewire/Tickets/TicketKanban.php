@@ -25,24 +25,28 @@ class TicketKanban extends Component
     public function render()
     {
         $statuses = (new TicketStatusMachine)->validStatuses();
-        
-        $ticketsByStatus = [];
+
         $allTickets = Ticket::with(['requester', 'assignee'])
-            ->whereIn('status', $statuses)
-            ->where(fn($query) => 
-                $query->where('status', '!=', 'closed')
-                      ->orWhere('closed_at', '>=', now()->subDays(3))
-            )
+            ->where(function ($q) {
+                $q->whereNotIn('status', ['closed'])
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'closed')
+                         ->where('closed_at', '>=', now()->subDays(3));
+                  });
+            })
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
+        $ticketsByStatus = [];
         foreach ($statuses as $status) {
-            $ticketsByStatus[$status] = $allTickets->where('status', $status);
+            $ticketsByStatus[$status] = $allTickets->where('status', $status)->values();
         }
 
+        $layout = request()->is('admin/*') ? 'layouts.admin' : 'layouts.agent';
+
         return view('livewire.tickets.ticket-kanban', [
-            'statuses' => $statuses,
-            'ticketsByStatus' => $ticketsByStatus
-        ])->layout('layouts.agent');
+            'statuses'        => $statuses,
+            'ticketsByStatus' => $ticketsByStatus,
+        ])->layout($layout);
     }
 }
