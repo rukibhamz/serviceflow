@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
+    // Redirect to installer if app has not been installed yet
+    if (env('APP_INSTALLED') !== 'true' && ! file_exists(storage_path('install.lock'))) {
+        return redirect()->route('installer.index');
+    }
+
     if (auth()->check()) {
         $user = auth()->user();
         if ($user->hasRole('admin') || $user->role === 'admin') {

@@ -32,6 +32,10 @@ class DatabaseInstaller
         $this->writeEnvValue('DB_USERNAME', $config['username'] ?? '');
         $this->writeEnvValue('DB_PASSWORD', $config['password'] ?? '');
 
+        // Switch session driver to database now that DB is configured
+        $this->writeEnvValue('SESSION_DRIVER', 'database');
+
+        Artisan::call('config:clear');
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
     }

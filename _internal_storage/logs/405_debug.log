@@ -73,3 +73,22 @@ Did you mean one of these?
 [2026-04-02 10:48:43] Exception: RuntimeException - Session store not set on request. | POST http://localhost/serviceflow/livewire/update
 [2026-04-02 10:49:10] Exception: RuntimeException - Session store not set on request. | POST http://localhost/serviceflow/livewire/update
 [2026-04-02 11:12:39] Exception: Symfony\Component\Console\Exception\CommandNotFoundException - Command "grep" is not defined. | GET http://localhost/serviceflow
+[2026-05-05 15:06:32] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-05 15:24:24] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 11:06:44] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 11:12:17] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 11:12:27] Exception: Symfony\Component\ErrorHandler\Error\FatalError - Maximum execution time of 120 seconds exceeded | GET http://localhost/serviceflow
+[2026-05-06 11:12:27] Exception: Symfony\Component\ErrorHandler\Error\FatalError - Maximum execution time of 120 seconds exceeded | GET http://localhost/serviceflow
+[2026-05-06 11:12:27] Exception: Symfony\Component\ErrorHandler\Error\FatalError - Maximum execution time of 120 seconds exceeded | GET http://localhost/serviceflow
+[2026-05-06 11:12:54] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET https://localhost/serviceflow
+[2026-05-06 11:13:13] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 11:20:07] Exception: Symfony\Component\ErrorHandler\Error\FatalError - Maximum execution time of 120 seconds exceeded | GET https://localhost/serviceflow
+[2026-05-06 11:20:07] Exception: Symfony\Component\ErrorHandler\Error\FatalError - Maximum execution time of 120 seconds exceeded | GET http://localhost/serviceflow
+[2026-05-06 11:20:31] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 11:20:52] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 14:01:42] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 14:02:02] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 14:06:38] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 14:06:38] Exception: Illuminate\Encryption\MissingAppKeyException - No application encryption key has been specified. | GET http://localhost/serviceflow
+[2026-05-06 14:10:57] Exception: Illuminate\Database\QueryException - SQLSTATE[HY000] [1049] Unknown database 'serviceflow' (Connection: mysql, SQL: select * from `sessions` where `id` = bgoUHAAui7LEBCzkgQp75xNvHtFvI5Edw03YfUte limit 1) | GET http://localhost/serviceflow
+[2026-05-06 14:10:59] Exception: Illuminate\Database\QueryException - SQLSTATE[HY000] [1049] Unknown database 'serviceflow' (Connection: mysql, SQL: select * from `sessions` where `id` = aVa5cXmjldakBqR1gaSac3Cw2hLNfOOipVfCS1ft limit 1) | GET http://localhost/serviceflow

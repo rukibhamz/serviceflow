@@ -10,6 +10,7 @@ class InstallerMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // If already installed, block access to the installer and redirect home
         if (env('APP_INSTALLED') === 'true' || file_exists(storage_path('install.lock'))) {
             return redirect('/');
         }
