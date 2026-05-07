@@ -18,7 +18,7 @@ use App\Models\Ticket;
 class ChangeApprovalWorkflow
 {
     /** Allowed transitions within the CAB approval sub-graph */
-    private const TRANSITIONS = [
+    public const TRANSITIONS = [
         'open'             => ['pending_approval', 'in_progress'],
         'pending_approval' => ['approved', 'rejected'],
         'approved'         => ['in_progress', 'scheduled'],

@@ -24,6 +24,10 @@ class Ticket extends Model implements HasMedia
         'status',
         'priority',
         'type',
+        'change_type',
+        'risk_level',
+        'cab_approval_required',
+        'scheduled_at',
         'source',
         'requester_id',
         'assignee_id',
@@ -36,8 +40,10 @@ class Ticket extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'custom_fields' => 'array',
-            'closed_at'     => 'datetime',
+            'custom_fields'        => 'array',
+            'closed_at'            => 'datetime',
+            'scheduled_at'         => 'datetime',
+            'cab_approval_required'=> 'boolean',
         ];
     }
 
@@ -122,5 +128,21 @@ class Ticket extends Model implements HasMedia
     public function assets(): BelongsToMany
     {
         return $this->belongsToMany(Asset::class, 'asset_ticket');
+    }
+
+    public function changeApprovers(): HasMany
+    {
+        return $this->hasMany(ChangeApprover::class);
+    }
+
+    public function isFullyApproved(): bool
+    {
+        return $this->changeApprovers()->exists()
+            && $this->changeApprovers()->where('decision', '!=', 'approved')->orWhereNull('decision')->doesntExist();
+    }
+
+    public function hasRejection(): bool
+    {
+        return $this->changeApprovers()->where('decision', 'rejected')->exists();
     }
 }

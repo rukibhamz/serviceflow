@@ -122,6 +122,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
     Route::get('/tickets', fn () => view('admin.tickets.index'))->name('tickets.index');
     Route::post('/tickets', [App\Http\Controllers\TicketController::class, 'store'])->name('tickets.store');
     Route::patch('/tickets/{ticket}/status', [App\Http\Controllers\TicketController::class, 'updateStatus'])->name('tickets.status.update');
+    Route::post('/tickets/{ticket}/comments', [App\Http\Controllers\WorkspaceActionController::class, 'addTicketComment'])->name('tickets.comments.add');
+    Route::patch('/tickets/{ticket}/status/save', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketStatus'])->name('tickets.status.save');
+    Route::patch('/tickets/{ticket}/priority', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketPriority'])->name('tickets.priority.save');
+    Route::patch('/tickets/{ticket}/assignee', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketAssignee'])->name('tickets.assignee.save');
+    Route::post('/tickets/{ticket}/merge', [App\Http\Controllers\WorkspaceActionController::class, 'mergeTicket'])->name('tickets.merge');
+    Route::post('/tickets/{ticket}/watch', [App\Http\Controllers\WorkspaceActionController::class, 'toggleTicketWatch'])->name('tickets.watch.toggle');
     Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
     Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('admin.tickets.show', compact('ticket')))->name('tickets.show');
@@ -133,8 +139,30 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
     Route::post('/problems/{problem}/incidents/{incident}/link', [App\Http\Controllers\WorkspaceActionController::class, 'linkIncident'])->name('problems.incidents.link');
     Route::delete('/problems/incidents/{incident}', [App\Http\Controllers\WorkspaceActionController::class, 'unlinkIncident'])->name('problems.incidents.unlink');
     Route::get('/assets', fn () => view('admin.itsm.assets'))->name('assets.index');
+    Route::get('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'index'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.index');
+    Route::get('/service-catalogue/create', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'create'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.create');
+    Route::post('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'store'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.store');
+    Route::get('/service-catalogue/{item}/edit', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'edit'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.edit');
+    Route::patch('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'update'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.update');
+    Route::patch('/service-catalogue/{item}/toggle', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'toggle'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.toggle');
+    Route::delete('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'destroy'])
+        ->defaults('portal', 'admin')
+        ->name('service-catalogue.destroy');
     Route::post('/assets/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAsset'])->name('assets.save');
     Route::post('/assets/import', [App\Http\Controllers\WorkspaceActionController::class, 'importAssets'])->name('assets.import');
+    Route::patch('/assets/{asset}/assign', [App\Http\Controllers\WorkspaceActionController::class, 'assignAsset'])->name('assets.assign');
     Route::delete('/assets/{asset}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAsset'])->name('assets.delete');
     Route::patch('/assets/{asset}/unassign', [App\Http\Controllers\WorkspaceActionController::class, 'unassignAsset'])->name('assets.unassign');
 
@@ -176,6 +204,12 @@ Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')
     Route::get('/tickets', fn () => view('agent.tickets.index'))->name('tickets.index');
     Route::post('/tickets', [App\Http\Controllers\TicketController::class, 'store'])->name('tickets.store');
     Route::patch('/tickets/{ticket}/status', [App\Http\Controllers\TicketController::class, 'updateStatus'])->name('tickets.status.update');
+    Route::post('/tickets/{ticket}/comments', [App\Http\Controllers\WorkspaceActionController::class, 'addTicketComment'])->name('tickets.comments.add');
+    Route::patch('/tickets/{ticket}/status/save', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketStatus'])->name('tickets.status.save');
+    Route::patch('/tickets/{ticket}/priority', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketPriority'])->name('tickets.priority.save');
+    Route::patch('/tickets/{ticket}/assignee', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketAssignee'])->name('tickets.assignee.save');
+    Route::post('/tickets/{ticket}/merge', [App\Http\Controllers\WorkspaceActionController::class, 'mergeTicket'])->name('tickets.merge');
+    Route::post('/tickets/{ticket}/watch', [App\Http\Controllers\WorkspaceActionController::class, 'toggleTicketWatch'])->name('tickets.watch.toggle');
     Route::get('/tickets/create', \App\Livewire\Tickets\CreateTicket::class)->name('tickets.create');
     Route::get('/tickets/kanban', \App\Livewire\Tickets\TicketKanban::class)->name('tickets.kanban');
     Route::get('/tickets/{ticket:ulid}', fn (\App\Models\Ticket $ticket) => view('agent.tickets.show', compact('ticket')))->name('tickets.show');
@@ -223,6 +257,7 @@ Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')
     Route::get('/assets', fn () => view('agent.itsm.assets'))->name('assets.index');
     Route::post('/assets/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAsset'])->name('assets.save');
     Route::post('/assets/import', [App\Http\Controllers\WorkspaceActionController::class, 'importAssets'])->name('assets.import');
+    Route::patch('/assets/{asset}/assign', [App\Http\Controllers\WorkspaceActionController::class, 'assignAsset'])->name('assets.assign');
     Route::delete('/assets/{asset}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAsset'])->name('assets.delete');
     Route::patch('/assets/{asset}/unassign', [App\Http\Controllers\WorkspaceActionController::class, 'unassignAsset'])->name('assets.unassign');
 
@@ -243,6 +278,12 @@ Route::middleware(['auth', 'role:team_lead|admin'])->prefix('team-lead')->name('
     Route::get('/dashboard', [App\Http\Controllers\TeamLeadController::class, 'dashboard'])->name('dashboard');
     Route::get('/teams', [App\Http\Controllers\TeamLeadController::class, 'teams'])->name('teams');
     Route::get('/tickets', [App\Http\Controllers\TeamLeadController::class, 'tickets'])->name('tickets');
+    Route::post('/tickets/{ticket}/comments', [App\Http\Controllers\WorkspaceActionController::class, 'addTicketComment'])->name('tickets.comments.add');
+    Route::patch('/tickets/{ticket}/status/save', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketStatus'])->name('tickets.status.save');
+    Route::patch('/tickets/{ticket}/priority', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketPriority'])->name('tickets.priority.save');
+    Route::patch('/tickets/{ticket}/assignee', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketAssignee'])->name('tickets.assignee.save');
+    Route::post('/tickets/{ticket}/merge', [App\Http\Controllers\WorkspaceActionController::class, 'mergeTicket'])->name('tickets.merge');
+    Route::post('/tickets/{ticket}/watch', [App\Http\Controllers\WorkspaceActionController::class, 'toggleTicketWatch'])->name('tickets.watch.toggle');
     Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\TeamLeadController::class, 'showTicket'])->name('tickets.show');
     Route::get('/knowledge', fn () => view('team-lead.knowledge.index'))->name('knowledge.index');
     Route::get('/knowledge/create', fn () => view('team-lead.knowledge.create'))->name('knowledge.create');
@@ -276,6 +317,28 @@ Route::middleware(['auth', 'role:team_lead|admin'])->prefix('team-lead')->name('
         app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
         return back();
     })->name('knowledge.vote');
+
+    Route::get('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'index'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.index');
+    Route::get('/service-catalogue/create', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'create'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.create');
+    Route::post('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'store'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.store');
+    Route::get('/service-catalogue/{item}/edit', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'edit'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.edit');
+    Route::patch('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'update'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.update');
+    Route::patch('/service-catalogue/{item}/toggle', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'toggle'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.toggle');
+    Route::delete('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'destroy'])
+        ->defaults('portal', 'team-lead')
+        ->name('service-catalogue.destroy');
 });
 
 Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('manager.')->group(function () {
@@ -283,6 +346,12 @@ Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('mana
     Route::get('/teams', [App\Http\Controllers\ManagerController::class, 'teams'])->name('teams');
     Route::get('/users', [App\Http\Controllers\ManagerController::class, 'users'])->name('users');
     Route::get('/tickets', [App\Http\Controllers\ManagerController::class, 'tickets'])->name('tickets');
+    Route::post('/tickets/{ticket}/comments', [App\Http\Controllers\WorkspaceActionController::class, 'addTicketComment'])->name('tickets.comments.add');
+    Route::patch('/tickets/{ticket}/status/save', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketStatus'])->name('tickets.status.save');
+    Route::patch('/tickets/{ticket}/priority', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketPriority'])->name('tickets.priority.save');
+    Route::patch('/tickets/{ticket}/assignee', [App\Http\Controllers\WorkspaceActionController::class, 'updateTicketAssignee'])->name('tickets.assignee.save');
+    Route::post('/tickets/{ticket}/merge', [App\Http\Controllers\WorkspaceActionController::class, 'mergeTicket'])->name('tickets.merge');
+    Route::post('/tickets/{ticket}/watch', [App\Http\Controllers\WorkspaceActionController::class, 'toggleTicketWatch'])->name('tickets.watch.toggle');
     Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\ManagerController::class, 'showTicket'])->name('tickets.show');
     Route::get('/knowledge', fn () => view('manager.knowledge.index'))->name('knowledge.index');
     Route::get('/knowledge/create', fn () => view('manager.knowledge.create'))->name('knowledge.create');
@@ -316,11 +385,46 @@ Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('mana
         app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
         return back();
     })->name('knowledge.vote');
+
+    Route::get('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'index'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.index');
+    Route::get('/service-catalogue/create', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'create'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.create');
+    Route::post('/service-catalogue', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'store'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.store');
+    Route::get('/service-catalogue/{item}/edit', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'edit'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.edit');
+    Route::patch('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'update'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.update');
+    Route::patch('/service-catalogue/{item}/toggle', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'toggle'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.toggle');
+    Route::delete('/service-catalogue/{item}', [\App\Http\Controllers\ServiceCatalogueItemController::class, 'destroy'])
+        ->defaults('portal', 'manager')
+        ->name('service-catalogue.destroy');
 });
 
 // Invitation acceptance (public)
 Route::get('/invite/{token}', [App\Http\Controllers\InvitationController::class, 'show'])->name('invite.show');
 Route::post('/invite/{token}', [App\Http\Controllers\InvitationController::class, 'accept'])->name('invite.accept');
+
+// Change approval (public — token-authenticated via email)
+Route::prefix('change-approval')->name('change.approval.')->group(function () {
+    Route::get('/{token}', [App\Http\Controllers\ChangeApprovalController::class, 'show'])->name('show');
+    Route::get('/{token}/approve', [App\Http\Controllers\ChangeApprovalController::class, 'quickApprove'])->name('quick-approve');
+    Route::get('/{token}/reject', [App\Http\Controllers\ChangeApprovalController::class, 'quickReject'])->name('quick-reject');
+    Route::post('/{token}', [App\Http\Controllers\ChangeApprovalController::class, 'submit'])->name('submit');
+});
+
+// In-app approval decision (auth required)
+Route::post('/change-approval/in-app/{approver}', [App\Http\Controllers\ChangeApprovalController::class, 'inAppDecide'])
+    ->middleware('auth')
+    ->name('change.approval.in-app');
 
 // Self-service portal
 Route::prefix('portal')->name('portal.')->group(function () {

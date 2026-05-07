@@ -27,7 +27,10 @@
     </div>
     @endif
 
-    <form wire:submit.prevent="save" class="space-y-6">
+    <form method="POST" action="{{ route('admin.settings.branding.save') }}" wire:submit.prevent="save" class="space-y-6">
+        @csrf
+        <input type="hidden" name="remove_logo" id="remove_logo_flag" value="0">
+        <input type="hidden" name="remove_favicon" id="remove_favicon_flag" value="0">
 
         <div class="card-ds">
             <div class="card-hdr">
@@ -67,6 +70,7 @@
                                 <p class="text-xs text-gray-400 mt-1">PNG, SVG, JPEG · Max 2 MB</p>
                                 @if($currentLogo)
                                     <button type="button" wire:click="removeLogo"
+                                            onclick="document.getElementById('remove_logo_flag').value='1'; this.form.submit();"
                                             class="mt-1.5 text-xs text-red-400 hover:text-red-600">
                                         Remove logo
                                     </button>
@@ -92,6 +96,7 @@
                                 <p class="text-xs text-gray-400 mt-1">ICO, PNG, SVG · Max 512 KB</p>
                                 @if($currentFavicon)
                                     <button type="button" wire:click="removeFavicon"
+                                            onclick="document.getElementById('remove_favicon_flag').value='1'; this.form.submit();"
                                             class="mt-1.5 text-xs text-red-400 hover:text-red-600">
                                         Remove favicon
                                     </button>

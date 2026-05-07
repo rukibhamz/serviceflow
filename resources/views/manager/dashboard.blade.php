@@ -6,6 +6,10 @@
         <h1 class="text-2xl font-bold text-gray-900">Manager Dashboard</h1>
         <p class="text-sm text-gray-500">Organization oversight and performance snapshot.</p>
     </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{{ route('manager.service-catalogue.index') }}" class="btn-ds primary">Service Catalogue</a>
+        <a href="{{ route('manager.service-catalogue.create') }}" class="btn-ds ghost">+ New Catalogue Item</a>
+    </div>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <div class="rounded-lg border bg-white p-4"><p class="text-xs text-gray-500">Teams</p><p class="text-2xl font-bold">{{ $stats['teams'] }}</p></div>
         <div class="rounded-lg border bg-white p-4"><p class="text-xs text-gray-500">Team Leads</p><p class="text-2xl font-bold">{{ $stats['team_leads'] }}</p></div>

@@ -28,30 +28,31 @@
 
     {{-- Root cause panel --}}
     @if ($rootCauseId)
-    <div class="bg-white border border-orange-200 rounded-xl p-5 shadow-sm space-y-4">
+    <form method="POST" action="{{ route($routePrefix . '.problems.root-cause.save', $rootCauseId) }}" wire:submit.prevent="saveRootCause" class="bg-white border border-orange-200 rounded-xl p-5 shadow-sm space-y-4">
+        @csrf
         <h3 class="font-medium text-gray-700">Root Cause Analysis</h3>
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Root Cause</label>
-            <textarea wire:model="rootCause" rows="3"
+            <textarea wire:model="rootCause" name="root_cause" rows="3"
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                       placeholder="Describe the root cause…"></textarea>
         </div>
         <div>
             <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer mb-2">
-                <input wire:model="markKnownError" type="checkbox" class="rounded border-gray-300">
+                <input wire:model="markKnownError" name="mark_known_error" type="checkbox" value="1" @checked($markKnownError) class="rounded border-gray-300">
                 Mark as Known Error (KEDB)
             </label>
             @if ($markKnownError)
-            <textarea wire:model="workaround" rows="2"
+            <textarea wire:model="workaround" name="workaround" rows="2"
                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                       placeholder="Describe the workaround…"></textarea>
             @endif
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-            <button type="button" wire:click="$set('rootCauseId', null)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button type="button" wire:click="saveRootCause" wire:loading.attr="disabled" class="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg">Save</button>
+            <a href="{{ route($routePrefix . '.problems.index') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
+            <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg">Save</button>
         </div>
-    </div>
+    </form>
     @endif
 
     {{-- Link incidents panel --}}
@@ -66,7 +67,11 @@
             @foreach ($linkedIncidents as $inc)
             <div class="flex items-center justify-between py-1 border-b border-gray-100">
                 <span class="text-sm text-gray-700">{{ $inc->subject }}</span>
-                <button type="button" wire:click="unlinkIncident({{ $inc->id }})" class="text-xs text-red-500 hover:underline">Unlink</button>
+                <form method="POST" action="{{ route($routePrefix . '.problems.incidents.unlink', $inc) }}" class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-xs text-red-500 hover:underline">Unlink</button>
+                </form>
             </div>
             @endforeach
         </div>
@@ -79,7 +84,10 @@
         @foreach ($incidentResults as $inc)
         <div class="flex items-center justify-between py-1 border-b border-gray-100">
             <span class="text-sm text-gray-700">{{ $inc->subject }}</span>
-            <button type="button" wire:click="linkIncident({{ $inc->id }})" class="text-xs text-indigo-600 hover:underline">Link</button>
+            <form method="POST" action="{{ route($routePrefix . '.problems.incidents.link', [$linkingId, $inc->id]) }}" class="inline">
+                @csrf
+                <button type="submit" class="text-xs text-indigo-600 hover:underline">Link</button>
+            </form>
         </div>
         @endforeach
 
@@ -137,8 +145,8 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-right space-x-2">
-                        <button type="button" wire:click="openRootCause({{ $problem->id }})" class="text-xs text-orange-500 hover:underline">RCA</button>
-                        <button type="button" wire:click="openLinkPanel({{ $problem->id }})" class="text-xs text-indigo-600 hover:underline">Incidents</button>
+                        <a href="{{ route($routePrefix . '.problems.index', ['rca' => $problem->id]) }}" class="text-xs text-orange-500 hover:underline">RCA</a>
+                        <a href="{{ route($routePrefix . '.problems.index', ['incidents' => $problem->id]) }}" class="text-xs text-indigo-600 hover:underline">Incidents</a>
                         <a href="{{ route($routePrefix . '.tickets.show', $problem->ulid) }}" class="text-xs text-gray-500 hover:underline">View</a>
                     </td>
                 </tr>

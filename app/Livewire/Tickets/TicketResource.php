@@ -25,6 +25,13 @@ class TicketResource extends Component
     public string $newAssigneeId = '';
     public string $mergeTargetUlid = '';
 
+    // ── Change / CAB ──────────────────────────────────────────────────────────
+    public string $cabApproverSearch  = '';
+    public bool   $showCabPanel       = false;
+    public string $scheduledAt        = '';
+    public string $changeType         = '';
+    public string $riskLevel          = '';
+
     // ── AI Assist ─────────────────────────────────────────────────────────────
     public ?string $aiSummary     = null;
     public ?string $aiDraftReply  = null;
@@ -39,6 +46,9 @@ class TicketResource extends Component
         $this->newStatus = $ticket->status;
         $this->newPriority = $ticket->priority;
         $this->newAssigneeId = (string) ($ticket->assignee_id ?? '');
+        $this->changeType    = $ticket->change_type ?? 'normal';
+        $this->riskLevel     = $ticket->risk_level ?? 'low';
+        $this->scheduledAt   = $ticket->scheduled_at?->format('Y-m-d\TH:i') ?? '';
         if (request()->routeIs('admin.*')) {
             $this->routePrefix = 'admin';
         } elseif (request()->routeIs('manager.*')) {
@@ -179,28 +189,64 @@ class TicketResource extends Component
     public function aiSummarise(): void
     {
         $this->aiLoading = true;
-        $this->aiSummary = app(AiAssistService::class)->summarise($this->ticket);
-        $this->aiLoading = false;
+        try {
+            $result = app(AiAssistService::class)->summarise($this->ticket);
+            $this->aiSummary = $result;
+            if ($this->looksLikeAiError($result)) {
+                session()->flash('error', $result);
+            }
+        } catch (\Throwable $e) {
+            session()->flash('error', 'AI summary failed: ' . $e->getMessage());
+        } finally {
+            $this->aiLoading = false;
+        }
     }
 
     public function aiDraft(): void
     {
-        $this->aiLoading    = true;
-        $this->aiDraftReply = app(AiAssistService::class)->draftReply($this->ticket);
-        $this->aiLoading    = false;
+        $this->aiLoading = true;
+        try {
+            $result = app(AiAssistService::class)->draftReply($this->ticket);
+            $this->aiDraftReply = $result;
+            if ($this->looksLikeAiError($result)) {
+                session()->flash('error', $result);
+            }
+        } catch (\Throwable $e) {
+            session()->flash('error', 'AI draft failed: ' . $e->getMessage());
+        } finally {
+            $this->aiLoading = false;
+        }
     }
 
     public function aiSuggestArticles(): void
     {
-        $this->aiLoading    = true;
-        $this->aiSuggestions = app(AiAssistService::class)->suggestArticles($this->ticket);
-        $this->aiLoading    = false;
+        $this->aiLoading = true;
+        try {
+            $result = app(AiAssistService::class)->suggestArticles($this->ticket);
+            $this->aiSuggestions = $result;
+            if (empty($result)) {
+                session()->flash('error', 'AI suggestion returned no results. Check AI configuration.');
+            }
+        } catch (\Throwable $e) {
+            session()->flash('error', 'AI suggestions failed: ' . $e->getMessage());
+        } finally {
+            $this->aiLoading = false;
+        }
     }
 
     public function useAiDraft(): void
     {
+        if (! $this->aiDraftReply) {
+            session()->flash('error', 'No AI draft available to use.');
+            return;
+        }
         $this->commentBody  = $this->aiDraftReply ?? '';
         $this->aiDraftReply = null;
+    }
+
+    private function looksLikeAiError(string $text): bool
+    {
+        return str_starts_with($text, '[AI Assist');
     }
 
     public function toggleSubscription(): void
@@ -214,14 +260,87 @@ class TicketResource extends Component
         $this->ticket->refresh();
     }
 
+    // ── Change / CAB ──────────────────────────────────────────────────────────
+
+    public function saveChangeDetails(): void
+    {
+        $this->ticket->update([
+            'change_type' => $this->changeType ?: null,
+            'risk_level'  => $this->riskLevel ?: null,
+            'scheduled_at'=> $this->scheduledAt ?: null,
+            'cab_approval_required' => true,
+        ]);
+        $this->ticket->refresh();
+        session()->flash('success', 'Change details saved.');
+    }
+
+    public function addCabApprover(int $userId): void
+    {
+        if ($this->ticket->changeApprovers()->where('user_id', $userId)->exists()) {
+            session()->flash('error', 'This user is already an approver.');
+            return;
+        }
+
+        $approver = $this->ticket->changeApprovers()->create([
+            'user_id' => $userId,
+            'token'   => \Illuminate\Support\Str::random(40),
+        ]);
+
+        $brandName = app(\App\Services\SettingService::class)->get('brand_name', config('app.name', 'ServiceFlow'));
+        $approver->load('user', 'ticket.requester');
+
+        \Illuminate\Support\Facades\Mail::to($approver->user->email)
+            ->send(new \App\Mail\ChangeApprovalRequestMail($approver, $brandName));
+
+        $this->cabApproverSearch = '';
+        $this->ticket->refresh();
+        session()->flash('success', "Approval request sent to {$approver->user->name}.");
+    }
+
+    public function removeCabApprover(int $approverId): void
+    {
+        $this->ticket->changeApprovers()->findOrFail($approverId)->delete();
+        $this->ticket->refresh();
+        session()->flash('success', 'Approver removed.');
+    }
+
+    public function submitForApproval(): void
+    {
+        if ($this->ticket->changeApprovers()->doesntExist()) {
+            session()->flash('error', 'Add at least one approver before submitting.');
+            return;
+        }
+
+        try {
+            app(\App\Services\Change\ChangeApprovalWorkflow::class)->submitForApproval($this->ticket);
+            $this->ticket->refresh();
+            $this->newStatus = $this->ticket->status;
+            session()->flash('success', 'Change submitted for CAB approval. Approvers have been notified.');
+        } catch (\Throwable $e) {
+            session()->flash('error', $e->getMessage());
+        }
+    }
+
 
     public function render()
     {
-        $this->ticket->load(['requester', 'assignee', 'team', 'slaTimers', 'comments.author']);
+        $this->ticket->load(['requester', 'assignee', 'team', 'slaTimers', 'comments.author', 'changeApprovers.user']);
 
-        $agents = \App\Models\User::orderBy('name')->get(['id', 'name']);
-        $statuses = (new TicketStatusMachine)->validStatuses();
+        $agents   = \App\Models\User::orderBy('name')->get(['id', 'name']);
+        $statuses = $this->ticket->type === 'change'
+            ? array_keys(\App\Services\Change\ChangeApprovalWorkflow::TRANSITIONS ?? [])
+            : (new TicketStatusMachine)->validStatuses();
 
-        return view('livewire.tickets.ticket-resource', compact('agents', 'statuses'));
+        // CAB approver search
+        $cabApproverResults = collect();
+        if ($this->cabApproverSearch) {
+            $existingIds = $this->ticket->changeApprovers()->pluck('user_id');
+            $cabApproverResults = \App\Models\User::where(function ($q) {
+                $q->where('name', 'like', "%{$this->cabApproverSearch}%")
+                  ->orWhere('email', 'like', "%{$this->cabApproverSearch}%");
+            })->whereNotIn('id', $existingIds)->limit(8)->get();
+        }
+
+        return view('livewire.tickets.ticket-resource', compact('agents', 'statuses', 'cabApproverResults'));
     }
 }

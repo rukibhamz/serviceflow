@@ -19,6 +19,7 @@
                 <a href="{{ route('manager.users') }}" class="hover:underline">Users</a>
                 <a href="{{ route('manager.tickets') }}" class="hover:underline">Tickets</a>
                 <a href="{{ route('manager.knowledge.index') }}" class="hover:underline">Knowledge</a>
+                <a href="{{ route('manager.service-catalogue.index') }}" class="hover:underline">Service Catalogue</a>
                 <a href="{{ route('logout') }}" class="hover:underline">Logout</a>
             </nav>
         </div>

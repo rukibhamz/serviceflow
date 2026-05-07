@@ -10,7 +10,7 @@
 
     <h1 class="mb-6 text-xl font-bold">Submit a Support Ticket</h1>
 
-    <form method="POST" action="{{ route('portal.tickets.store') }}" class="space-y-4 rounded border border-gray-200 bg-white p-6">
+    <form method="POST" action="{{ route('portal.tickets.store') }}" enctype="multipart/form-data" class="space-y-4 rounded border border-gray-200 bg-white p-6">
         @csrf
 
         <div>
@@ -126,6 +126,89 @@
             </div>
 
             <p x-show="open && search && filtered.length === 0" class="mt-1 text-xs text-gray-400">No users found.</p>
+        </div>
+
+        {{-- Attachments --}}
+        <div
+            x-data="{
+                files: [],
+                addFiles(e) {
+                    const newFiles = Array.from(e.target.files);
+                    this.files = [...this.files, ...newFiles].slice(0, 5);
+                },
+                remove(idx) {
+                    this.files.splice(idx, 1);
+                },
+                formatSize(bytes) {
+                    if (bytes < 1024) return bytes + ' B';
+                    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+                    return (bytes/1048576).toFixed(1) + ' MB';
+                },
+                isImage(file) {
+                    return file.type.startsWith('image/');
+                }
+            }"
+        >
+            <label class="mb-1 block text-sm font-medium text-gray-700">
+                Attachments
+                <span class="ml-1 text-xs font-normal text-gray-400">(optional — up to 5 files, max 10 MB each)</span>
+            </label>
+
+            {{-- Drop zone --}}
+            <label
+                class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                @dragover.prevent
+                @drop.prevent="addFiles($event.dataTransfer)"
+            >
+                <div class="flex flex-col items-center gap-1 text-gray-400 pointer-events-none">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <span class="text-sm">Drag & drop files here, or <span class="text-blue-600 underline">browse</span></span>
+                    <span class="text-xs">PNG, JPG, GIF, PDF, DOC, XLS, ZIP</span>
+                </div>
+                <input
+                    type="file"
+                    name="attachments[]"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip"
+                    class="hidden"
+                    @change="addFiles($event)"
+                />
+            </label>
+
+            {{-- File preview list --}}
+            <div class="mt-2 space-y-2" x-show="files.length > 0">
+                <template x-for="(file, idx) in files" :key="idx">
+                    <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                        {{-- Thumbnail or icon --}}
+                        <template x-if="isImage(file)">
+                            <img :src="URL.createObjectURL(file)" class="w-10 h-10 rounded object-cover flex-shrink-0">
+                        </template>
+                        <template x-if="!isImage(file)">
+                            <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                        </template>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate" x-text="file.name"></p>
+                            <p class="text-xs text-gray-400" x-text="formatSize(file.size)"></p>
+                        </div>
+                        <button type="button" @click="remove(idx)"
+                                class="text-gray-400 hover:text-red-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            @error('attachments.*')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <button type="submit"

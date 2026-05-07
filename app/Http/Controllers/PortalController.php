@@ -90,19 +90,31 @@ class PortalController extends Controller
     public function storeTicket(Request $request)
     {
         $data = $request->validate([
-            'subject'      => ['required', 'string', 'max:255'],
-            'description'  => ['nullable', 'string'],
-            'priority'     => ['required', 'string', 'in:low,medium,high,critical'],
-            'type'         => ['required', 'string', 'in:incident,service_request,problem,change'],
-            'tagged_users' => ['nullable', 'array'],
+            'subject'        => ['required', 'string', 'max:255'],
+            'description'    => ['nullable', 'string'],
+            'priority'       => ['required', 'string', 'in:low,medium,high,critical'],
+            'type'           => ['required', 'string', 'in:incident,service_request,problem,change'],
+            'tagged_users'   => ['nullable', 'array'],
             'tagged_users.*' => ['integer', 'exists:users,id'],
+            'attachments'    => ['nullable', 'array', 'max:5'],
+            'attachments.*'  => ['file', 'max:10240', 'mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt,csv,zip'],
         ]);
 
         $data['source'] = 'web';
 
         $ticket = $this->createTicketAction->execute($data, auth()->user());
 
-        // Save tagged colleagues as watchers (exclude the requester themselves)
+        // Attach uploaded files via Spatie MediaLibrary
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $ticket->addMedia($file->getRealPath())
+                    ->usingName($file->getClientOriginalName())
+                    ->usingFileName($file->getClientOriginalName())
+                    ->toMediaCollection('attachments');
+            }
+        }
+
+        // Save tagged colleagues as watchers
         if (!empty($data['tagged_users'])) {
             $watcherIds = collect($data['tagged_users'])
                 ->filter(fn ($id) => $id != auth()->id())
@@ -149,14 +161,14 @@ class PortalController extends Controller
 
     public function catalogue()
     {
-        $items = $this->catalogueService->all();
+        $items = $this->catalogueService->all(auth()->user());
 
         return view('portal.catalogue.index', compact('items'));
     }
 
     public function catalogueShow(string $id)
     {
-        $item = $this->catalogueService->find($id);
+        $item = $this->catalogueService->find($id, auth()->user());
 
         abort_if($item === null, 404);
 
@@ -165,13 +177,13 @@ class PortalController extends Controller
 
     public function catalogueSubmit(Request $request, string $id)
     {
-        $item = $this->catalogueService->find($id);
+        $item = $this->catalogueService->find($id, auth()->user());
 
         abort_if($item === null, 404);
 
         $request->validate(['subject' => ['required', 'string', 'max:255']]);
 
-        $ticketData = $this->catalogueService->mapToTicketData($id, $request->all());
+        $ticketData = $this->catalogueService->mapToTicketData($id, $request->all(), auth()->user());
 
         $ticket = $this->createTicketAction->execute($ticketData, auth()->user());
 

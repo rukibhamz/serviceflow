@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Tickets\MergeTicketsAction;
 use App\Models\Asset;
 use App\Models\Automation;
 use App\Models\Ticket;
+use App\Models\TicketComment;
 use App\Services\Asset\AssetImporter;
 use App\Services\Asset\AssetService;
 use App\Services\Problem\ProblemService;
+use App\Services\Tickets\TicketStatusMachine;
+use App\Services\Tickets\TicketSubscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WorkspaceActionController extends Controller
 {
@@ -129,6 +134,18 @@ class WorkspaceActionController extends Controller
         return back()->with('success', 'Asset unassigned.');
     }
 
+    public function assignAsset(Request $request, Asset $asset): RedirectResponse
+    {
+        $data = $request->validate([
+            'assignee_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $user = \App\Models\User::findOrFail($data['assignee_id']);
+        app(AssetService::class)->assign($asset, $user);
+
+        return back()->with('success', 'Asset assigned.');
+    }
+
     public function saveRootCause(Request $request, Ticket $problem): RedirectResponse
     {
         abort_unless($problem->type === 'problem', 422);
@@ -163,6 +180,100 @@ class WorkspaceActionController extends Controller
 
         app(ProblemService::class)->unlinkIncident($incident);
         return back()->with('success', 'Incident unlinked.');
+    }
+
+    public function addTicketComment(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $data = $request->validate([
+            'comment_body' => 'required|string|min:1',
+            'is_internal' => 'nullable|boolean',
+            'attachments.*' => 'nullable|file|max:10240',
+        ]);
+
+        $comment = $ticket->comments()->create([
+            'user_id' => Auth::id(),
+            'body' => $data['comment_body'],
+            'is_internal' => (bool) ($data['is_internal'] ?? false),
+        ]);
+
+        foreach (($request->file('attachments') ?? []) as $file) {
+            $comment->addMedia($file->getRealPath())
+                ->usingName($file->getClientOriginalName())
+                ->usingFileName($file->getClientOriginalName())
+                ->toMediaCollection('attachments');
+        }
+
+        return back()->with('success', 'Comment added.');
+    }
+
+    public function updateTicketStatus(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => 'required|string|in:open,in_progress,pending,resolved,closed',
+        ]);
+
+        if ($ticket->status !== $data['status']) {
+            app(TicketStatusMachine::class)->transition($ticket, $data['status']);
+        }
+
+        return back()->with('success', 'Status updated.');
+    }
+
+    public function updateTicketPriority(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $data = $request->validate([
+            'priority' => 'required|string|in:low,medium,high,critical',
+        ]);
+
+        $ticket->update(['priority' => $data['priority']]);
+
+        return back()->with('success', 'Priority updated.');
+    }
+
+    public function updateTicketAssignee(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $data = $request->validate([
+            'assignee_id' => 'nullable|integer|exists:users,id',
+        ]);
+
+        $ticket->update(['assignee_id' => $data['assignee_id'] ?? null]);
+
+        return back()->with('success', 'Assignee updated.');
+    }
+
+    public function mergeTicket(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $data = $request->validate([
+            'merge_target_ulid' => 'required|string',
+        ]);
+
+        $target = Ticket::where('ulid', $data['merge_target_ulid'])->first();
+        if (! $target) {
+            return back()->with('error', 'Target ticket not found.');
+        }
+        if ($target->id === $ticket->id) {
+            return back()->with('error', 'Cannot merge a ticket into itself.');
+        }
+
+        app(MergeTicketsAction::class)->execute($target, $ticket);
+
+        $prefix = $request->is('admin/*')
+            ? 'admin'
+            : ($request->is('manager/*') ? 'manager' : ($request->is('team-lead/*') ? 'team-lead' : 'agent'));
+
+        return redirect()->route($prefix . '.tickets.show', $target->ulid)->with('success', 'Ticket merged.');
+    }
+
+    public function toggleTicketWatch(Ticket $ticket): RedirectResponse
+    {
+        $service = app(TicketSubscriptionService::class);
+        if ($ticket->watchers()->where('user_id', Auth::id())->exists()) {
+            $service->unsubscribe($ticket, Auth::id());
+        } else {
+            $service->subscribe($ticket, Auth::id());
+        }
+
+        return back();
     }
 }
 

@@ -184,7 +184,8 @@ class AssetList extends Component
             : collect();
 
         $statuses = app(AssetService::class)->validStatuses();
+        $allUsers = User::orderBy('name')->get(['id', 'name']);
 
-        return view('livewire.asset.asset-list', compact('assets', 'assigneeResults', 'statuses'));
+        return view('livewire.asset.asset-list', compact('assets', 'assigneeResults', 'statuses', 'allUsers'));
     }
 }

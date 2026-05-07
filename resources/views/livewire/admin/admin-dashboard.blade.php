@@ -4,6 +4,11 @@
         <div class="page-sub">Global system health and team performance — {{ now()->format('D d M Y') }}</div>
     </div>
 
+    <div class="mb-4 flex flex-wrap gap-2">
+        <a href="{{ route('admin.service-catalogue.index') }}" class="btn-ds primary">Service Catalogue</a>
+        <a href="{{ route('admin.service-catalogue.create') }}" class="btn-ds ghost">+ New Catalogue Item</a>
+    </div>
+
     {{-- Global Stats Row --}}
     <div class="stats-ds">
         <div class="stat-card">

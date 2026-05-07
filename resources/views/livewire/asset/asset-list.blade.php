@@ -106,7 +106,12 @@
         @foreach ($assigneeResults as $user)
             <div class="flex items-center justify-between py-1 border-b border-gray-100">
                 <span class="text-sm text-gray-700">{{ $user->name }} <span class="text-gray-400 text-xs">{{ $user->email }}</span></span>
-                <button type="button" wire:click="assignTo({{ $user->id }})" class="text-xs text-indigo-600 hover:underline">Assign</button>
+                <form method="POST" action="{{ route($routePrefix . '.assets.assign', $assigningId) }}" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="assignee_id" value="{{ $user->id }}">
+                    <button type="submit" class="text-xs text-indigo-600 hover:underline">Assign</button>
+                </form>
             </div>
         @endforeach
         <button type="button" wire:click="$set('assigningId', null)" class="text-xs text-gray-400 hover:underline">Cancel</button>
@@ -142,7 +147,17 @@
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $asset->assignee?->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right space-x-2">
-                        <button type="button" wire:click="openAssign({{ $asset->id }})" class="text-xs text-indigo-600 hover:underline">Assign</button>
+                        <form method="POST" action="{{ route($routePrefix . '.assets.assign', $asset) }}" class="inline-flex items-center gap-1">
+                            @csrf
+                            @method('PATCH')
+                            <select name="assignee_id" class="text-xs border border-gray-300 rounded px-1 py-0.5">
+                                <option value="">Assign...</option>
+                                @foreach($allUsers as $assignUser)
+                                    <option value="{{ $assignUser->id }}">{{ $assignUser->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="text-xs text-indigo-600 hover:underline">Go</button>
+                        </form>
                         @if ($asset->assigned_to)
                             <form method="POST" action="{{ route($routePrefix . '.assets.unassign', $asset) }}" class="inline">
                                 @csrf

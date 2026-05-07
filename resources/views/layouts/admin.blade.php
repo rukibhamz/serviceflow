@@ -113,6 +113,7 @@
                         ['route' => 'admin.dashboard', 'match' => 'admin.dashboard',  'title' => 'Dashboard',   'icon' => '<rect x="1" y="1" width="6" height="6" rx="1.5" stroke-width="1.4"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke-width="1.4"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke-width="1.4"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke-width="1.4"/>'],
                         ['route' => 'admin.teams',     'match' => 'admin.teams',      'title' => 'Teams',       'icon' => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="1.4"/><circle cx="9" cy="7" r="4" stroke-width="1.4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="1.4"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="1.4"/>'],
                         ['route' => 'admin.tenants',   'match' => 'admin.tenants',    'title' => 'Tenants',     'icon' => '<rect x="2" y="3" width="12" height="10" rx="1.5" stroke-width="1.4"/><path d="M5 7h6M5 9h4" stroke-width="1.4" stroke-linecap="round"/>'],
+                        ['route' => 'admin.service-catalogue.index', 'match' => 'admin.service-catalogue.*', 'title' => 'Service Catalogue', 'icon' => '<path d="M3 2h8l2 2v10H3V2z" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 6h5M6 9h4M6 12h3" stroke-width="1.4" stroke-linecap="round"/>'],
                         ['route' => 'admin.settings.index', 'match' => 'admin.settings.*', 'title' => 'Settings', 'icon' => '<path d="M8 1.5l1.2 1.1 1.6-.2.6 1.5 1.5.6-.2 1.6L14.5 8l-1.1 1.2.2 1.6-1.5.6-.6 1.5-1.6-.2L8 14.5l-1.2-1.1-1.6.2-.6-1.5-1.5-.6.2-1.6L1.5 8l1.1-1.2-.2-1.6 1.5-.6.6-1.5 1.6.2L8 1.5z" stroke-width="1.1"/><circle cx="8" cy="8" r="2.2" stroke-width="1.1"/>'],
                         ['route' => 'agent.dashboard', 'match' => null,               'title' => 'Agent View',  'icon' => '<path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'],
                     ];
@@ -166,6 +167,10 @@
                 <a href="{{ route('admin.assets.index') }}" class="sidebar-item {{ Request::routeIs('admin.assets.*') ? 'active' : '' }}">
                     <svg class="sidebar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke-width="1.2"/><path d="M5 7h6M5 9h4" stroke-width="1.2" stroke-linecap="round"/></svg>
                     Assets
+                </a>
+                <a href="{{ route('admin.service-catalogue.index') }}" class="sidebar-item {{ Request::routeIs('admin.service-catalogue.*') ? 'active' : '' }}">
+                    <svg class="sidebar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M3 2h8l2 2v10H3V2z" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 6h5M6 9h4M6 12h3" stroke-width="1.2" stroke-linecap="round"/></svg>
+                    Service Catalogue
                 </a>
                 <a href="{{ route('admin.knowledge.index') }}" class="sidebar-item {{ Request::routeIs('admin.knowledge.*') ? 'active' : '' }}">
                     <svg class="sidebar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M3 2h8l2 2v10H3V2z" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 6h5M6 9h4M6 12h3" stroke-width="1.2" stroke-linecap="round"/></svg>
