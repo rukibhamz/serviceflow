@@ -5,6 +5,7 @@ namespace App\Actions\Email;
 use App\Actions\Tickets\CreateTicketAction;
 use App\DTOs\ParsedEmail;
 use App\Models\EmailThread;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\User;
@@ -52,6 +53,7 @@ class EmailToTicketAction
             'priority'    => 'medium',
             'type'        => 'incident',
             'source'      => 'email',
+            'team_id'     => $this->resolveTeamIdFromInboundAddress($email),
         ], $user);
 
         // 3. Create EmailThread record for this inbound message
@@ -83,5 +85,26 @@ class EmailToTicketAction
             'direction'    => 'inbound',
             'raw_headers'  => json_encode($email->rawHeaders),
         ]);
+    }
+
+    private function resolveTeamIdFromInboundAddress(ParsedEmail $email): ?int
+    {
+        $toHeader = strtolower((string) ($email->rawHeaders['to'] ?? ''));
+        if ($toHeader === '') {
+            return null;
+        }
+
+        preg_match_all('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', $toHeader, $matches);
+        $addresses = collect($matches[0] ?? [])->map(fn ($v) => strtolower(trim($v)))->unique()->values();
+        if ($addresses->isEmpty()) {
+            return null;
+        }
+
+        $team = Team::query()
+            ->where('inbound_email_enabled', true)
+            ->whereIn('inbound_email', $addresses->all())
+            ->first();
+
+        return $team?->id;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SlaTimer;
 use App\Models\Team;
 use App\Models\SlaPolicy;
 use App\Models\Tenant;
@@ -64,17 +65,28 @@ class AdminController extends Controller
         return redirect()->route('admin.sla')->with('success', 'SLA policy created.');
     }
 
-    public function toggleSlaPolicy(SlaPolicy $policy): \Illuminate\Http\RedirectResponse
+    public function toggleSlaPolicy(int $policy): \Illuminate\Http\RedirectResponse
     {
+        $policy = SlaPolicy::findOrFail($policy);
         $policy->is_active = ! $policy->is_active;
         $policy->save();
 
         return redirect()->route('admin.sla')->with('success', 'SLA policy status updated.');
     }
 
-    public function deleteSlaPolicy(SlaPolicy $policy): \Illuminate\Http\RedirectResponse
+    public function deleteSlaPolicy(int $policy): \Illuminate\Http\RedirectResponse
     {
-        $policy->delete();
+        $policy = SlaPolicy::findOrFail($policy);
+
+        try {
+            DB::transaction(function () use ($policy) {
+                // Guard against older databases where FK delete behavior may differ.
+                SlaTimer::where('sla_policy_id', $policy->id)->delete();
+                $policy->delete();
+            });
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.sla')->with('error', 'Unable to delete SLA policy right now.');
+        }
 
         return redirect()->route('admin.sla')->with('success', 'SLA policy deleted.');
     }
@@ -219,12 +231,16 @@ class AdminController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
+            'inbound_email' => 'nullable|email|max:255',
+            'inbound_email_enabled' => 'nullable|boolean',
         ]);
 
         Team::create([
             'tenant_id' => Auth::user()?->tenant_id,
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'inbound_email' => isset($data['inbound_email']) ? strtolower($data['inbound_email']) : null,
+            'inbound_email_enabled' => (bool) ($data['inbound_email_enabled'] ?? false),
         ]);
 
         return redirect()->route('admin.teams')->with('success', 'Team created successfully.');
@@ -235,11 +251,15 @@ class AdminController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
+            'inbound_email' => 'nullable|email|max:255',
+            'inbound_email_enabled' => 'nullable|boolean',
         ]);
 
         $team->update([
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'inbound_email' => isset($data['inbound_email']) ? strtolower($data['inbound_email']) : null,
+            'inbound_email_enabled' => (bool) ($data['inbound_email_enabled'] ?? false),
         ]);
 
         return redirect()->route('admin.teams')->with('success', 'Team updated successfully.');

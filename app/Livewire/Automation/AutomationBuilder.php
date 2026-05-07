@@ -33,6 +33,12 @@ class AutomationBuilder extends Component
     {
         $this->resetForm();
 
+        $editId = (int) request()->query('edit', 0);
+        if ($editId > 0) {
+            $this->edit($editId);
+            return;
+        }
+
         if (request()->boolean('new')) {
             $this->showForm = true;
         }

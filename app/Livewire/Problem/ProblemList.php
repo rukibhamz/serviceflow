@@ -24,6 +24,20 @@ class ProblemList extends Component
     public string $workaround = '';
     public bool $markKnownError = false;
 
+    public function mount(): void
+    {
+        $rca = (int) request()->query('rca', 0);
+        if ($rca > 0) {
+            $this->openRootCause($rca);
+            return;
+        }
+
+        $incidents = (int) request()->query('incidents', 0);
+        if ($incidents > 0) {
+            $this->openLinkPanel($incidents);
+        }
+    }
+
     public function updatingSearch(): void { $this->resetPage(); }
 
     public function openLinkPanel(int $id): void

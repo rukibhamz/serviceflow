@@ -2,7 +2,9 @@
 
 namespace App\Services\Knowledge;
 
+use App\Models\ArticleCategory;
 use App\Models\KnowledgeArticle;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -13,6 +15,7 @@ class ArticleService
     public function create(array $data, User $author): KnowledgeArticle
     {
         $this->validate($data);
+        $this->enforceTeamScope($data, $author);
 
         $slug = $this->generateUniqueSlug($data['title']);
 
@@ -20,6 +23,7 @@ class ArticleService
             'title'       => $data['title'],
             'slug'        => $slug,
             'body'        => $data['body'],
+            'team_id'     => $data['team_id'] ?? null,
             'category_id' => $data['category_id'] ?? null,
             'status'      => $data['status'] ?? 'draft',
             'author_id'   => $author->id,
@@ -37,6 +41,7 @@ class ArticleService
     public function update(KnowledgeArticle $article, array $data, User $editor): KnowledgeArticle
     {
         $this->validate($data, partial: true);
+        $this->enforceTeamScope($data, $editor);
 
         if (isset($data['title']) && $data['title'] !== $article->title) {
             $data['slug'] = $this->generateUniqueSlug($data['title'], $article->id);
@@ -131,5 +136,36 @@ class ArticleService
         }
 
         return $slug;
+    }
+
+    private function enforceTeamScope(array &$data, User $user): void
+    {
+        $isAdmin = $user->hasRole('admin') || $user->role === 'admin';
+        $allowedTeamIds = Team::query()
+            ->where('team_lead_id', $user->id)
+            ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+            ->pluck('id')
+            ->unique()
+            ->values();
+
+        if (! empty($data['category_id'])) {
+            $category = ArticleCategory::findOrFail((int) $data['category_id']);
+            $categoryTeamId = $category->team_id ? (int) $category->team_id : null;
+
+            if (! $isAdmin && ($categoryTeamId === null || ! $allowedTeamIds->contains($categoryTeamId))) {
+                throw ValidationException::withMessages([
+                    'category_id' => 'You can only use categories assigned to your team.',
+                ]);
+            }
+
+            $data['team_id'] = $categoryTeamId;
+            return;
+        }
+
+        if (! $isAdmin) {
+            throw ValidationException::withMessages([
+                'category_id' => 'Please select a team category before saving an article.',
+            ]);
+        }
     }
 }

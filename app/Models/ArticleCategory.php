@@ -14,6 +14,7 @@ class ArticleCategory extends Model
     protected $fillable = [
         'name',
         'slug',
+        'team_id',
         'parent_id',
         'sort_order',
     ];
@@ -21,6 +22,11 @@ class ArticleCategory extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(ArticleCategory::class, 'parent_id');
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function children(): HasMany

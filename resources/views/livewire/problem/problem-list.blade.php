@@ -48,8 +48,8 @@
             @endif
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-            <button wire:click="$set('rootCauseId', null)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button wire:click="saveRootCause" class="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg">Save</button>
+            <button type="button" wire:click="$set('rootCauseId', null)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button type="button" wire:click="saveRootCause" wire:loading.attr="disabled" class="px-4 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg">Save</button>
         </div>
     </div>
     @endif
@@ -66,7 +66,7 @@
             @foreach ($linkedIncidents as $inc)
             <div class="flex items-center justify-between py-1 border-b border-gray-100">
                 <span class="text-sm text-gray-700">{{ $inc->subject }}</span>
-                <button wire:click="unlinkIncident({{ $inc->id }})" class="text-xs text-red-500 hover:underline">Unlink</button>
+                <button type="button" wire:click="unlinkIncident({{ $inc->id }})" class="text-xs text-red-500 hover:underline">Unlink</button>
             </div>
             @endforeach
         </div>
@@ -79,11 +79,11 @@
         @foreach ($incidentResults as $inc)
         <div class="flex items-center justify-between py-1 border-b border-gray-100">
             <span class="text-sm text-gray-700">{{ $inc->subject }}</span>
-            <button wire:click="linkIncident({{ $inc->id }})" class="text-xs text-indigo-600 hover:underline">Link</button>
+            <button type="button" wire:click="linkIncident({{ $inc->id }})" class="text-xs text-indigo-600 hover:underline">Link</button>
         </div>
         @endforeach
 
-        <button wire:click="$set('linkingId', null)" class="text-xs text-gray-400 hover:underline">Close</button>
+        <button type="button" wire:click="$set('linkingId', null)" class="text-xs text-gray-400 hover:underline">Close</button>
     </div>
     @endif
 
@@ -137,8 +137,8 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-right space-x-2">
-                        <button wire:click="openRootCause({{ $problem->id }})" class="text-xs text-orange-500 hover:underline">RCA</button>
-                        <button wire:click="openLinkPanel({{ $problem->id }})" class="text-xs text-indigo-600 hover:underline">Incidents</button>
+                        <button type="button" wire:click="openRootCause({{ $problem->id }})" class="text-xs text-orange-500 hover:underline">RCA</button>
+                        <button type="button" wire:click="openLinkPanel({{ $problem->id }})" class="text-xs text-indigo-600 hover:underline">Incidents</button>
                         <a href="{{ route($routePrefix . '.tickets.show', $problem->ulid) }}" class="text-xs text-gray-500 hover:underline">View</a>
                     </td>
                 </tr>

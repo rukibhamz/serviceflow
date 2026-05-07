@@ -113,7 +113,7 @@
                         <input type="checkbox" wire:model="isInternal" class="rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                         Internal note (agents only)
                     </label>
-                    <button wire:click="addComment" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    <button type="button" wire:click="addComment" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                         Submit
                     </button>
                 </div>
@@ -147,7 +147,7 @@
                         <option value="{{ $s }}">{{ str_replace('_', ' ', ucfirst($s)) }}</option>
                     @endforeach
                 </select>
-                <button wire:click="updateStatus" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
+                <button type="button" wire:click="updateStatus" wire:loading.attr="disabled" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
                     Update Status
                 </button>
             </div>
@@ -161,7 +161,7 @@
                     <option value="high">High</option>
                     <option value="critical">Critical</option>
                 </select>
-                <button wire:click="updatePriority" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
+                <button type="button" wire:click="updatePriority" wire:loading.attr="disabled" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
                     Update Priority
                 </button>
             </div>
@@ -175,7 +175,7 @@
                         <option value="{{ $agent->id }}">{{ $agent->name }}</option>
                     @endforeach
                 </select>
-                <button wire:click="updateAssignee" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
+                <button type="button" wire:click="updateAssignee" wire:loading.attr="disabled" class="mt-2 w-full rounded bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">
                     Update Assignee
                 </button>
             </div>
@@ -190,7 +190,7 @@
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Watchers</h3>
-                    <button wire:click="toggleSubscription" class="text-xs {{ $ticket->watchers->contains(Auth::id()) ? 'text-red-600' : 'text-blue-600' }} hover:underline">
+                    <button type="button" wire:click="toggleSubscription" class="text-xs {{ $ticket->watchers->contains(Auth::id()) ? 'text-red-600' : 'text-blue-600' }} hover:underline">
                         {{ $ticket->watchers->contains(Auth::id()) ? 'Unwatch' : 'Watch' }}
                     </button>
                 </div>
@@ -237,7 +237,7 @@
                     class="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
                 />
                 @error('mergeTargetUlid') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                <button wire:click="mergeInto" class="mt-2 w-full rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                <button type="button" wire:click="mergeInto" wire:loading.attr="disabled" class="mt-2 w-full rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
                     onclick="return confirm('Merge this ticket? This cannot be undone.')">
                     Merge Ticket
                 </button>
@@ -252,13 +252,13 @@
                 @endif
 
                 <div class="space-y-2">
-                    <button wire:click="aiSummarise" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                    <button type="button" wire:click="aiSummarise" wire:loading.attr="disabled" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
                         Summarise Ticket
                     </button>
-                    <button wire:click="aiDraft" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                    <button type="button" wire:click="aiDraft" wire:loading.attr="disabled" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
                         Draft Reply
                     </button>
-                    <button wire:click="aiSuggestArticles" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+                    <button type="button" wire:click="aiSuggestArticles" wire:loading.attr="disabled" class="w-full rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
                         Suggest KB Articles
                     </button>
                 </div>
@@ -274,7 +274,7 @@
                     <div class="mt-3 rounded bg-white border border-indigo-200 p-3 text-xs text-gray-700">
                         <p class="font-semibold text-indigo-600 mb-1">Draft Reply</p>
                         <p class="whitespace-pre-wrap">{{ $aiDraftReply }}</p>
-                        <button wire:click="useAiDraft" class="mt-2 text-xs text-indigo-600 hover:underline">Use this draft →</button>
+                        <button type="button" wire:click="useAiDraft" class="mt-2 text-xs text-indigo-600 hover:underline">Use this draft →</button>
                     </div>
                 @endif
 

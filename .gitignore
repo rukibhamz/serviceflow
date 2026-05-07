@@ -18,7 +18,19 @@ yarn-error.log
 /.vscode
 
 # Local runtime / machine-specific files (never deploy)
-/_internal_storage/
+/_internal_storage/app/livewire-tmp/*
+/_internal_storage/app/public/*
+/_internal_storage/framework/cache/**
+/_internal_storage/framework/sessions/*
+/_internal_storage/framework/views/*
+/_internal_storage/logs/*
+/_internal_storage/install.lock
+!/_internal_storage/app/livewire-tmp/.gitkeep
+!/_internal_storage/app/public/.gitkeep
+!/_internal_storage/framework/cache/data/.gitkeep
+!/_internal_storage/framework/sessions/.gitkeep
+!/_internal_storage/framework/views/.gitkeep
+!/_internal_storage/logs/.gitkeep
 /storage/logs/
 /storage/framework/cache/
 /storage/framework/sessions/

@@ -19,6 +19,7 @@ class CreateTicketAction
             'priority'    => ['required', 'string', 'in:low,medium,high,critical'],
             'type'        => ['required', 'string', 'in:incident,service_request,problem,change'],
             'source'      => ['nullable', 'string', 'in:web,email,api'],
+            'team_id'     => ['nullable', 'integer', 'exists:teams,id'],
         ]);
 
         if ($validator->fails()) {
@@ -34,6 +35,7 @@ class CreateTicketAction
             'priority'     => $validated['priority'],
             'type'         => $validated['type'],
             'source'       => $validated['source'] ?? 'web',
+            'team_id'      => $validated['team_id'] ?? null,
             'status'       => 'open',
             'requester_id' => $requester->id,
         ]);

@@ -14,6 +14,8 @@ class TeamManager extends Component
 
     public string $name = '';
     public string $description = '';
+    public string $inboundEmail = '';
+    public bool $inboundEmailEnabled = false;
     public int $editingTeamId = 0;
     public bool $isCreating = false;
 
@@ -25,6 +27,8 @@ class TeamManager extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'description' => 'nullable|string|max:500',
+        'inboundEmail' => 'nullable|email|max:255',
+        'inboundEmailEnabled' => 'boolean',
     ];
 
     public function mount(): void
@@ -41,6 +45,8 @@ class TeamManager extends Component
                 $this->editingTeamId = $team->id;
                 $this->name = $team->name;
                 $this->description = (string) ($team->description ?? '');
+                $this->inboundEmail = (string) ($team->inbound_email ?? '');
+                $this->inboundEmailEnabled = (bool) ($team->inbound_email_enabled ?? false);
                 $this->isCreating = true;
             }
             return;
@@ -66,9 +72,11 @@ class TeamManager extends Component
                 'tenant_id' => auth()->user()?->tenant_id,
                 'name' => $this->name,
                 'description' => $this->description,
+                'inbound_email' => $this->inboundEmail ?: null,
+                'inbound_email_enabled' => $this->inboundEmailEnabled,
             ]);
 
-            $this->reset(['name', 'description', 'isCreating']);
+            $this->reset(['name', 'description', 'inboundEmail', 'inboundEmailEnabled', 'isCreating']);
             $this->resetPage();
             session()->flash('success', 'Team created successfully.');
         } catch (\Throwable $e) {
@@ -84,7 +92,7 @@ class TeamManager extends Component
     public function startCreate(): void
     {
         $this->resetValidation();
-        $this->reset(['name', 'description', 'editingTeamId']);
+        $this->reset(['name', 'description', 'inboundEmail', 'inboundEmailEnabled', 'editingTeamId']);
         $this->isCreating = true;
     }
 
@@ -94,6 +102,8 @@ class TeamManager extends Component
         $this->editingTeamId = $id;
         $this->name = $team->name;
         $this->description = $team->description;
+        $this->inboundEmail = (string) ($team->inbound_email ?? '');
+        $this->inboundEmailEnabled = (bool) ($team->inbound_email_enabled ?? false);
         $this->isCreating = true;
     }
 
@@ -105,9 +115,11 @@ class TeamManager extends Component
         $team->update([
             'name' => $this->name,
             'description' => $this->description,
+            'inbound_email' => $this->inboundEmail ?: null,
+            'inbound_email_enabled' => $this->inboundEmailEnabled,
         ]);
 
-        $this->reset(['name', 'description', 'editingTeamId', 'isCreating']);
+        $this->reset(['name', 'description', 'inboundEmail', 'inboundEmailEnabled', 'editingTeamId', 'isCreating']);
         $this->resetPage();
         session()->flash('success', 'Team updated successfully.');
     }

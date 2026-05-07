@@ -17,6 +17,7 @@
                 <a href="{{ route('team-lead.dashboard') }}" class="hover:underline">Dashboard</a>
                 <a href="{{ route('team-lead.teams') }}" class="hover:underline">My Teams</a>
                 <a href="{{ route('team-lead.tickets') }}" class="hover:underline">Team Tickets</a>
+                <a href="{{ route('team-lead.knowledge.index') }}" class="hover:underline">Knowledge</a>
                 <a href="{{ route('logout') }}" class="hover:underline">Logout</a>
             </nav>
         </div>

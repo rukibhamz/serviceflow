@@ -17,6 +17,7 @@ class KnowledgeArticle extends Model
         'slug',
         'body',
         'status',
+        'team_id',
         'category_id',
         'author_id',
         'view_count',
@@ -35,6 +36,11 @@ class KnowledgeArticle extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ArticleCategory::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function author(): BelongsTo

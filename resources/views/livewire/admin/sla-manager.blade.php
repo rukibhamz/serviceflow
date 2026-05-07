@@ -3,6 +3,9 @@
     @if (session('success'))
         <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded text-sm">{{ session('success') }}</div>
     @endif
+    @if (session('error'))
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm">{{ session('error') }}</div>
+    @endif
 
     <div class="flex items-center justify-between">
         <div>
@@ -153,7 +156,7 @@
                             </form>
                         </td>
                         <td class="px-4 py-3 text-right space-x-2">
-                            <a href="{{ route('admin.sla', ['edit' => $policy->id]) }}" class="text-xs text-indigo-600 hover:underline">Edit</a>
+                            <a href="{{ route('admin.sla', ['edit' => $policy->id]) }}" wire:click="edit({{ $policy->id }})" class="text-xs text-indigo-600 hover:underline">Edit</a>
                             <form method="POST" action="{{ route('admin.sla.delete', $policy) }}" class="inline" onsubmit="return confirm('Delete this SLA policy?');">
                                 @csrf
                                 @method('DELETE')

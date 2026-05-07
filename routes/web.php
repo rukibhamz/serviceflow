@@ -129,7 +129,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
     // ITSM
     Route::get('/changes', \App\Livewire\Admin\ChangeManager::class)->name('changes.index');
     Route::get('/problems', \App\Livewire\Admin\ProblemManager::class)->name('problems.index');
+    Route::post('/problems/{problem}/root-cause', [App\Http\Controllers\WorkspaceActionController::class, 'saveRootCause'])->name('problems.root-cause.save');
+    Route::post('/problems/{problem}/incidents/{incident}/link', [App\Http\Controllers\WorkspaceActionController::class, 'linkIncident'])->name('problems.incidents.link');
+    Route::delete('/problems/incidents/{incident}', [App\Http\Controllers\WorkspaceActionController::class, 'unlinkIncident'])->name('problems.incidents.unlink');
     Route::get('/assets', fn () => view('admin.itsm.assets'))->name('assets.index');
+    Route::post('/assets/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAsset'])->name('assets.save');
+    Route::post('/assets/import', [App\Http\Controllers\WorkspaceActionController::class, 'importAssets'])->name('assets.import');
+    Route::delete('/assets/{asset}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAsset'])->name('assets.delete');
+    Route::patch('/assets/{asset}/unassign', [App\Http\Controllers\WorkspaceActionController::class, 'unassignAsset'])->name('assets.unassign');
 
     // Knowledge base
     Route::get('/knowledge', fn () => view('admin.knowledge.index'))->name('knowledge.index');
@@ -143,6 +150,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
 
     // Automation & Reports
     Route::get('/automation', fn () => view('admin.automation.index'))->name('automation.index');
+    Route::post('/automation/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAutomation'])->name('automation.save');
+    Route::patch('/automation/{automation}/toggle', [App\Http\Controllers\WorkspaceActionController::class, 'toggleAutomation'])->name('automation.toggle');
+    Route::delete('/automation/{automation}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAutomation'])->name('automation.delete');
     Route::get('/reports', fn () => view('admin.reports.index'))->name('reports.index');
 
     // Configuration
@@ -173,8 +183,32 @@ Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')
 
     Route::get('/knowledge', fn () => view('agent.knowledge.index'))->name('knowledge.index');
     Route::get('/knowledge/create', fn () => view('agent.knowledge.create'))->name('knowledge.create');
-    Route::get('/knowledge/{article:slug}/edit', fn (\App\Models\KnowledgeArticle $article) => view('agent.knowledge.edit', compact('article')))->name('knowledge.edit');
-    Route::get('/knowledge/{article:slug}', fn (\App\Models\KnowledgeArticle $article) => view('agent.knowledge.show', compact('article')))->name('knowledge.show');
+    Route::get('/knowledge/{article:slug}/edit', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('agent.knowledge.edit', compact('article'));
+    })->name('knowledge.edit');
+    Route::get('/knowledge/{article:slug}', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('agent.knowledge.show', compact('article'));
+    })->name('knowledge.show');
     Route::post('/knowledge/{article:slug}/vote', function (\App\Models\KnowledgeArticle $article, \Illuminate\Http\Request $request) {
         app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
         return back();
@@ -183,10 +217,20 @@ Route::middleware(['auth', 'role:admin|agent'])->prefix('agent')->name('agent.')
     // ITSM
     Route::get('/changes', fn () => view('agent.itsm.changes'))->name('changes.index');
     Route::get('/problems', fn () => view('agent.itsm.problems'))->name('problems.index');
+    Route::post('/problems/{problem}/root-cause', [App\Http\Controllers\WorkspaceActionController::class, 'saveRootCause'])->name('problems.root-cause.save');
+    Route::post('/problems/{problem}/incidents/{incident}/link', [App\Http\Controllers\WorkspaceActionController::class, 'linkIncident'])->name('problems.incidents.link');
+    Route::delete('/problems/incidents/{incident}', [App\Http\Controllers\WorkspaceActionController::class, 'unlinkIncident'])->name('problems.incidents.unlink');
     Route::get('/assets', fn () => view('agent.itsm.assets'))->name('assets.index');
+    Route::post('/assets/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAsset'])->name('assets.save');
+    Route::post('/assets/import', [App\Http\Controllers\WorkspaceActionController::class, 'importAssets'])->name('assets.import');
+    Route::delete('/assets/{asset}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAsset'])->name('assets.delete');
+    Route::patch('/assets/{asset}/unassign', [App\Http\Controllers\WorkspaceActionController::class, 'unassignAsset'])->name('assets.unassign');
 
     // Agent analytics
     Route::get('/automation', fn () => view('agent.automation.index'))->name('automation.index');
+    Route::post('/automation/save', [App\Http\Controllers\WorkspaceActionController::class, 'saveAutomation'])->name('automation.save');
+    Route::patch('/automation/{automation}/toggle', [App\Http\Controllers\WorkspaceActionController::class, 'toggleAutomation'])->name('automation.toggle');
+    Route::delete('/automation/{automation}', [App\Http\Controllers\WorkspaceActionController::class, 'deleteAutomation'])->name('automation.delete');
     Route::get('/reports', fn () => view('agent.reports.index'))->name('reports.index');
 
     // Profile only — no system settings for agents
@@ -200,6 +244,38 @@ Route::middleware(['auth', 'role:team_lead|admin'])->prefix('team-lead')->name('
     Route::get('/teams', [App\Http\Controllers\TeamLeadController::class, 'teams'])->name('teams');
     Route::get('/tickets', [App\Http\Controllers\TeamLeadController::class, 'tickets'])->name('tickets');
     Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\TeamLeadController::class, 'showTicket'])->name('tickets.show');
+    Route::get('/knowledge', fn () => view('team-lead.knowledge.index'))->name('knowledge.index');
+    Route::get('/knowledge/create', fn () => view('team-lead.knowledge.create'))->name('knowledge.create');
+    Route::get('/knowledge/{article:slug}/edit', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('team-lead.knowledge.edit', compact('article'));
+    })->name('knowledge.edit');
+    Route::get('/knowledge/{article:slug}', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('team-lead.knowledge.show', compact('article'));
+    })->name('knowledge.show');
+    Route::post('/knowledge/{article:slug}/vote', function (\App\Models\KnowledgeArticle $article, \Illuminate\Http\Request $request) {
+        app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
+        return back();
+    })->name('knowledge.vote');
 });
 
 Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('manager.')->group(function () {
@@ -208,6 +284,38 @@ Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('mana
     Route::get('/users', [App\Http\Controllers\ManagerController::class, 'users'])->name('users');
     Route::get('/tickets', [App\Http\Controllers\ManagerController::class, 'tickets'])->name('tickets');
     Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\ManagerController::class, 'showTicket'])->name('tickets.show');
+    Route::get('/knowledge', fn () => view('manager.knowledge.index'))->name('knowledge.index');
+    Route::get('/knowledge/create', fn () => view('manager.knowledge.create'))->name('knowledge.create');
+    Route::get('/knowledge/{article:slug}/edit', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('manager.knowledge.edit', compact('article'));
+    })->name('knowledge.edit');
+    Route::get('/knowledge/{article:slug}', function (\App\Models\KnowledgeArticle $article) {
+        $user = auth()->user();
+        if (! ($user->hasRole('admin') || $user->role === 'admin')) {
+            $allowedTeamIds = \App\Models\Team::query()
+                ->where('team_lead_id', $user->id)
+                ->orWhereHas('members', fn ($q) => $q->where('users.id', $user->id))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            abort_unless($article->team_id && in_array((int) $article->team_id, $allowedTeamIds, true), 403);
+        }
+        return view('manager.knowledge.show', compact('article'));
+    })->name('knowledge.show');
+    Route::post('/knowledge/{article:slug}/vote', function (\App\Models\KnowledgeArticle $article, \Illuminate\Http\Request $request) {
+        app(\App\Services\Knowledge\ArticleService::class)->vote($article, (bool) $request->input('helpful'));
+        return back();
+    })->name('knowledge.vote');
 });
 
 // Invitation acceptance (public)

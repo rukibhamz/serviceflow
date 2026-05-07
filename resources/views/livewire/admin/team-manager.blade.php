@@ -34,6 +34,16 @@
                         <textarea wire:model.defer="description" name="description" rows="3" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ $description }}</textarea>
                         @error('description') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Team Mailbox (Inbound)</label>
+                        <input type="email" wire:model.defer="inboundEmail" name="inbound_email" value="{{ $inboundEmail }}" placeholder="support-team@company.com" class="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        @error('inboundEmail') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        @error('inbound_email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" wire:model.defer="inboundEmailEnabled" name="inbound_email_enabled" value="1" @checked($inboundEmailEnabled) class="rounded border-gray-300" />
+                        Enable team email ingestion (shared mailbox supported)
+                    </label>
                     <div class="mt-6 flex justify-end gap-3">
                         <a href="{{ route('admin.teams') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
                         <button type="submit" class="btn-ds primary">
@@ -89,6 +99,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Team Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Inbound Mailbox</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Team Lead</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Members</th>
                     <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Actions</th>
@@ -99,6 +110,16 @@
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $team->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $team->description ?: '—' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            @if($team->inbound_email)
+                                <span>{{ $team->inbound_email }}</span>
+                                <span class="ml-1 text-xs {{ $team->inbound_email_enabled ? 'text-green-600' : 'text-gray-400' }}">
+                                    ({{ $team->inbound_email_enabled ? 'enabled' : 'disabled' }})
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $team->lead?->name ?? '—' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $team->members_count }} agents</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">

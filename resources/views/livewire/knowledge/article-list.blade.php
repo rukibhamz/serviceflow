@@ -1,5 +1,12 @@
 <div class="flex gap-6">
-    @php $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent'; @endphp
+    @php
+        $routePrefix = match (true) {
+            request()->routeIs('admin.*') => 'admin',
+            request()->routeIs('team-lead.*') => 'team-lead',
+            request()->routeIs('manager.*') => 'manager',
+            default => 'agent',
+        };
+    @endphp
     {{-- Category Tree Sidebar --}}
     <aside class="w-48 flex-shrink-0">
         <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Categories</h2>

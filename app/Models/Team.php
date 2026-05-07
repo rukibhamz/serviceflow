@@ -17,7 +17,16 @@ class Team extends Model
         'team_lead_id',
         'name',
         'description',
+        'inbound_email',
+        'inbound_email_enabled',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'inbound_email_enabled' => 'boolean',
+        ];
+    }
 
     public function lead(): BelongsTo
     {
@@ -32,5 +41,15 @@ class Team extends Model
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function articleCategories(): HasMany
+    {
+        return $this->hasMany(ArticleCategory::class);
+    }
+
+    public function knowledgeArticles(): HasMany
+    {
+        return $this->hasMany(KnowledgeArticle::class);
     }
 }
