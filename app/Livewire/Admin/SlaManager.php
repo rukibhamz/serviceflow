@@ -33,6 +33,12 @@ class SlaManager extends Component
 
     public function mount(): void
     {
+        $editId = (int) request()->query('edit', 0);
+        if ($editId > 0) {
+            $this->edit($editId);
+            return;
+        }
+
         if (request()->boolean('new')) {
             $this->showForm = true;
         }

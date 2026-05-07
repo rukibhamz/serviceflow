@@ -41,6 +41,8 @@ class TicketResource extends Component
         $this->newAssigneeId = (string) ($ticket->assignee_id ?? '');
         if (request()->routeIs('admin.*')) {
             $this->routePrefix = 'admin';
+        } elseif (request()->routeIs('manager.*')) {
+            $this->routePrefix = 'manager';
         } elseif (request()->routeIs('team-lead.*')) {
             $this->routePrefix = 'team-lead';
         } else {

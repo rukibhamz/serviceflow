@@ -3,23 +3,198 @@
 namespace App\Http\Controllers;
 
 use App\Models\Team;
+use App\Models\SlaPolicy;
+use App\Models\Tenant;
 use App\Models\User;
+use App\Models\UserInvitation;
+use App\Services\Tenant\TenantProvisioner;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
+    public function saveSlaPolicy(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'editing_id' => 'nullable|integer|exists:sla_policies,id',
+            'name' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high,critical,urgent',
+            'ticket_type' => 'nullable|in:incident,service_request,problem,change',
+            'response_minutes' => 'required|integer|min:1',
+            'resolution_minutes' => 'required|integer|min:1',
+            'business_hours_only' => 'nullable|boolean',
+            'is_default' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $ticketType = $data['ticket_type'] ?? null;
+        $isDefault = (bool) ($data['is_default'] ?? false);
+
+        $payload = [
+            'name' => $data['name'],
+            'priority' => $data['priority'],
+            'ticket_type' => $ticketType ?: null,
+            'response_minutes' => $data['response_minutes'],
+            'resolution_minutes' => $data['resolution_minutes'],
+            'business_hours' => (bool) ($data['business_hours_only'] ?? false)
+                ? ['start' => '09:00', 'end' => '17:00', 'days' => [1, 2, 3, 4, 5]]
+                : null,
+            'is_default' => $isDefault,
+            'is_active' => (bool) ($data['is_active'] ?? false),
+        ];
+
+        if ($isDefault) {
+            SlaPolicy::where('priority', $data['priority'])
+                ->where('ticket_type', $payload['ticket_type'])
+                ->where('id', '!=', $data['editing_id'] ?? 0)
+                ->update(['is_default' => false]);
+        }
+
+        if (! empty($data['editing_id'])) {
+            SlaPolicy::findOrFail($data['editing_id'])->update($payload);
+            return redirect()->route('admin.sla')->with('success', 'SLA policy updated.');
+        }
+
+        SlaPolicy::create($payload);
+        return redirect()->route('admin.sla')->with('success', 'SLA policy created.');
+    }
+
+    public function toggleSlaPolicy(SlaPolicy $policy): \Illuminate\Http\RedirectResponse
+    {
+        $policy->is_active = ! $policy->is_active;
+        $policy->save();
+
+        return redirect()->route('admin.sla')->with('success', 'SLA policy status updated.');
+    }
+
+    public function deleteSlaPolicy(SlaPolicy $policy): \Illuminate\Http\RedirectResponse
+    {
+        $policy->delete();
+
+        return redirect()->route('admin.sla')->with('success', 'SLA policy deleted.');
+    }
+
+    public function updateUser(Request $request, User $user): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => 'required|in:admin,agent,manager,team_lead,end_user,user',
+            'is_active' => 'nullable|boolean',
+            'teams' => 'array',
+            'teams.*' => 'integer|exists:teams,id',
+        ]);
+
+        $role = $data['role'] === 'user' ? 'end_user' : $data['role'];
+
+        $user->update([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $role,
+            'is_active' => (bool) ($data['is_active'] ?? false),
+        ]);
+
+        $user->teams()->sync($data['teams'] ?? []);
+
+        try {
+            $user->syncRoles([$role]);
+        } catch (\Throwable) {
+            // ignore role-sync failures and keep role column as source of truth
+        }
+
+        return redirect()->route('admin.users')->with('success', 'User updated.');
+    }
+
+    public function toggleUserStatus(User $user): \Illuminate\Http\RedirectResponse
+    {
+        $user->is_active = ! ((bool) $user->is_active);
+        $user->save();
+
+        return redirect()->route('admin.users')->with('success', $user->is_active ? 'User activated.' : 'User deactivated.');
+    }
+
+    public function cancelInvitation(UserInvitation $invitation): \Illuminate\Http\RedirectResponse
+    {
+        $invitation->delete();
+
+        return redirect()->route('admin.users')->with('success', 'Invitation cancelled.');
+    }
+
+    public function sendInvitation(Request $request, SettingService $settings): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'invite_email' => 'required|email|unique:users,email|unique:user_invitations,email',
+            'invite_role' => 'required|in:admin,agent,manager,team_lead,end_user,user',
+        ]);
+
+        $inviteRole = $data['invite_role'] === 'user' ? 'end_user' : $data['invite_role'];
+
+        $invitation = UserInvitation::create([
+            'email' => $data['invite_email'],
+            'role' => $inviteRole,
+            'token' => Str::random(40),
+            'invited_by' => Auth::id(),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $brandName = $settings->get('brand_name', config('app.name', 'ServiceFlow'));
+
+        try {
+            Mail::to($invitation->email)->send(new \App\Mail\UserInvitationMail($invitation, $brandName));
+        } catch (\Throwable) {
+            return redirect()->route('admin.users')->with('success', "Invitation created for {$invitation->email}, but email sending failed. Check mail settings.");
+        }
+
+        return redirect()->route('admin.users')->with('success', "Invitation sent to {$invitation->email}.");
+    }
+
+    public function provisionTenant(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'subdomain' => 'required|string|max:63|regex:/^[a-z0-9-]+$/',
+            'admin_name' => 'required|string|max:255',
+            'admin_email' => 'required|email',
+            'admin_password' => 'required|string|min:8',
+        ]);
+
+        try {
+            app(TenantProvisioner::class)->provision($data);
+
+            return redirect()->route('admin.tenants')->with('success', "Tenant '{$data['name']}' provisioned successfully.");
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('admin.tenants', ['new' => 1])->withErrors(['subdomain' => $e->getMessage()])->withInput();
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.tenants', ['new' => 1])->withErrors(['name' => 'Provision failed: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    public function suspendTenant(Tenant $tenant): \Illuminate\Http\RedirectResponse
+    {
+        app(TenantProvisioner::class)->suspend($tenant);
+
+        return redirect()->route('admin.tenants')->with('success', 'Tenant suspended.');
+    }
+
+    public function activateTenant(Tenant $tenant): \Illuminate\Http\RedirectResponse
+    {
+        app(TenantProvisioner::class)->activate($tenant);
+
+        return redirect()->route('admin.tenants')->with('success', 'Tenant activated.');
+    }
+
     public function storeUser(Request $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,agent,team_lead,end_user,user',
+            'role' => 'required|in:admin,agent,manager,team_lead,end_user,user',
             'is_active' => 'nullable|boolean',
         ]);
 

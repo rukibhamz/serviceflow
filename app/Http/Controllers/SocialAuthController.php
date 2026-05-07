@@ -122,6 +122,14 @@ class SocialAuthController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($user->hasRole('manager') || $user->role === 'manager') {
+            return redirect()->route('manager.dashboard');
+        }
+
+        if ($user->hasRole('team_lead') || $user->role === 'team_lead') {
+            return redirect()->route('team-lead.dashboard');
+        }
+
         if ($user->hasRole('agent') || $user->role === 'agent') {
             return redirect()->route('agent.dashboard');
         }

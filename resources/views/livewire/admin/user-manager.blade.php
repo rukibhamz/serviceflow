@@ -54,6 +54,7 @@
                             <option value="agent" @selected(old('role') === 'agent')>Agent</option>
                             <option value="team_lead" @selected(old('role') === 'team_lead')>Team Lead</option>
                             <option value="admin" @selected(old('role') === 'admin')>Admin</option>
+                            <option value="manager" @selected(old('role') === 'manager')>Manager</option>
                         </select>
                         @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -78,26 +79,30 @@
     <div class="card-ds">
         <div class="card-hdr"><div class="card-title">Invite New User</div></div>
         <div class="card-body">
-            <form wire:submit.prevent="sendInvite" class="space-y-4">
+            <form method="POST" action="{{ route('admin.invitations.send') }}" wire:submit.prevent="sendInvite" class="space-y-4">
+                @csrf
                 @error('inviteGeneral') <p class="rounded bg-red-100 px-3 py-2 text-sm text-red-700">{{ $message }}</p> @enderror
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="sm:col-span-2 form-group">
                         <label class="form-label">Email Address *</label>
-                        <input wire:model.defer="inviteEmail" type="email" class="form-input-ds" placeholder="user@example.com">
+                        <input wire:model.defer="inviteEmail" name="invite_email" value="{{ $inviteEmail }}" type="email" class="form-input-ds" placeholder="user@example.com">
                         @error('inviteEmail') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('invite_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="form-group">
                         <label class="form-label">Role *</label>
-                        <select wire:model.defer="inviteRole" class="form-input-ds">
-                            <option value="end_user">User (Portal)</option>
-                            <option value="agent">Agent</option>
-                            <option value="manager">Manager</option>
-                            <option value="admin">Admin</option>
+                        <select wire:model.defer="inviteRole" name="invite_role" class="form-input-ds">
+                            <option value="end_user" @selected($inviteRole === 'end_user')>User (Portal)</option>
+                            <option value="agent" @selected($inviteRole === 'agent')>Agent</option>
+                            <option value="team_lead" @selected($inviteRole === 'team_lead')>Team Lead</option>
+                            <option value="manager" @selected($inviteRole === 'manager')>Manager</option>
+                            <option value="admin" @selected($inviteRole === 'admin')>Admin</option>
                         </select>
+                        @error('invite_role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
-                    <button type="button" wire:click="$set('showInviteForm', false)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                    <a href="{{ route('admin.users') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
                     <button type="submit" class="btn-ds primary">Send Invitation</button>
                 </div>
             </form>
@@ -109,33 +114,39 @@
     @if ($editingUserId)
     <div class="card-ds border-blue-200">
         <div class="card-hdr"><div class="card-title">Edit User</div></div>
-        <div class="card-body space-y-4">
+        <form method="POST" action="{{ route('admin.users.update', $editingUserId) }}" wire:submit.prevent="saveUser" class="card-body space-y-4">
+            @csrf
+            @method('PATCH')
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-group">
                     <label class="form-label">Full Name</label>
-                    <input wire:model="editName" type="text" class="form-input-ds">
+                    <input wire:model="editName" name="name" value="{{ $editName }}" type="text" class="form-input-ds">
                     @error('editName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input wire:model="editEmail" type="email" class="form-input-ds">
+                    <input wire:model="editEmail" name="email" value="{{ $editEmail }}" type="email" class="form-input-ds">
                     @error('editEmail') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Role</label>
-                    <select wire:model="editRole" class="form-input-ds">
-                        <option value="end_user">User (Portal)</option>
-                        <option value="agent">Agent</option>
-                        <option value="manager">Manager</option>
-                        <option value="admin">Admin</option>
+                    <select wire:model="editRole" name="role" class="form-input-ds">
+                        <option value="end_user" @selected($editRole === 'end_user')>User (Portal)</option>
+                        <option value="agent" @selected($editRole === 'agent')>Agent</option>
+                        <option value="team_lead" @selected($editRole === 'team_lead')>Team Lead</option>
+                        <option value="manager" @selected($editRole === 'manager')>Manager</option>
+                        <option value="admin" @selected($editRole === 'admin')>Admin</option>
                     </select>
+                    @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Teams</label>
                     <div class="space-y-1 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2">
                         @foreach($teams as $team)
                         <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
-                            <input type="checkbox" wire:model="editTeams" value="{{ $team->id }}" class="rounded border-gray-300">
+                            <input type="checkbox" wire:model="editTeams" name="teams[]" value="{{ $team->id }}" @checked(in_array((string) $team->id, $editTeams, true)) class="rounded border-gray-300">
                             {{ $team->name }}
                         </label>
                         @endforeach
@@ -147,15 +158,15 @@
             </div>
             <div class="flex items-center gap-4">
                 <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                    <input wire:model="editIsActive" type="checkbox" class="rounded border-gray-300">
+                    <input wire:model="editIsActive" name="is_active" type="checkbox" value="1" @checked($editIsActive) class="rounded border-gray-300">
                     Active account
                 </label>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                <button type="button" wire:click="$set('editingUserId', null)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="button" wire:click="saveUser" class="btn-ds primary">Save Changes</button>
+                <a href="{{ route('admin.users') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
+                <button type="submit" class="btn-ds primary">Save Changes</button>
             </div>
-        </div>
+        </form>
     </div>
     @endif
 
@@ -185,7 +196,11 @@
                         <td class="px-4 py-2 text-gray-500 text-xs">{{ $inv->inviter?->name ?? '—' }}</td>
                         <td class="px-4 py-2 text-gray-400 text-xs">{{ $inv->expires_at->format('d M Y') }}</td>
                         <td class="px-4 py-2 text-right">
-                            <button wire:click="cancelInvitation({{ $inv->id }})" wire:confirm="Cancel this invitation?" class="text-xs text-red-500 hover:underline">Cancel</button>
+                            <form method="POST" action="{{ route('admin.invitations.cancel', $inv) }}" class="inline" onsubmit="return confirm('Cancel this invitation?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-xs text-red-500 hover:underline">Cancel</button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach
@@ -231,7 +246,11 @@
                         </td>
                         <td class="px-4 py-3 text-gray-400 text-xs">Expires {{ $inv->expires_at->format('d M Y') }}</td>
                         <td class="px-4 py-3 text-right space-x-2">
-                            <button wire:click="cancelInvitation({{ $inv->id }})" wire:confirm="Cancel this invitation?" class="text-xs text-red-500 hover:underline">Cancel</button>
+                            <form method="POST" action="{{ route('admin.invitations.cancel', $inv) }}" class="inline" onsubmit="return confirm('Cancel this invitation?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-xs text-red-500 hover:underline">Cancel</button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach
@@ -251,6 +270,7 @@
                                 'admin' => 'bg-purple-100 text-purple-700',
                                 'agent' => 'bg-blue-100 text-blue-700',
                                 'team_lead' => 'bg-emerald-100 text-emerald-700',
+                                'manager' => 'bg-fuchsia-100 text-fuchsia-700',
                                 default => 'bg-gray-100 text-gray-600',
                             } }}">{{ ucfirst(str_replace('_', ' ', $user->role ?? 'user')) }}</span>
                         </td>
@@ -264,11 +284,14 @@
                         </td>
                         <td class="px-4 py-3 text-gray-400 text-xs">{{ $user->created_at->format('d M Y') }}</td>
                         <td class="px-4 py-3 text-right space-x-2">
-                            <button wire:click="editUser({{ $user->id }})" class="text-xs text-indigo-600 hover:underline">Edit</button>
-                            <button wire:click="toggleActive({{ $user->id }})"
-                                    class="text-xs {{ $user->is_active ? 'text-orange-500' : 'text-green-600' }} hover:underline">
-                                {{ $user->is_active ? 'Deactivate' : 'Activate' }}
-                            </button>
+                            <a href="{{ route('admin.users', ['edit' => $user->id]) }}" class="text-xs text-indigo-600 hover:underline">Edit</a>
+                            <form method="POST" action="{{ route('admin.users.status.toggle', $user) }}" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-xs {{ $user->is_active ? 'text-orange-500' : 'text-green-600' }} hover:underline">
+                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @empty

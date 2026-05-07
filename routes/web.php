@@ -19,6 +19,9 @@ Route::get('/', function () {
         if ($user->hasRole('team_lead') || $user->role === 'team_lead') {
             return redirect()->route('team-lead.dashboard');
         }
+        if ($user->hasRole('manager') || $user->role === 'manager') {
+            return redirect()->route('manager.dashboard');
+        }
         if ($user->hasRole('agent') || $user->role === 'agent') {
             return redirect()->route('agent.dashboard');
         }
@@ -46,6 +49,9 @@ Route::get('/admin', function () {
     if ($user->hasRole('team_lead') || $user->role === 'team_lead') {
         return redirect()->route('team-lead.dashboard');
     }
+    if ($user->hasRole('manager') || $user->role === 'manager') {
+        return redirect()->route('manager.dashboard');
+    }
     if ($user->hasRole('agent') || $user->role === 'agent') {
         return redirect()->route('agent.dashboard');
     }
@@ -57,6 +63,15 @@ Route::get('/team-lead', function () {
     $user = auth()->user();
     if ($user->hasRole('team_lead') || $user->role === 'team_lead' || $user->hasRole('admin') || $user->role === 'admin') {
         return redirect()->route('team-lead.dashboard');
+    }
+    return redirect()->route('portal.index');
+})->middleware('auth');
+
+Route::get('/manager', function () {
+    if (! auth()->check()) return redirect()->route('login');
+    $user = auth()->user();
+    if ($user->hasRole('manager') || $user->role === 'manager' || $user->hasRole('admin') || $user->role === 'admin') {
+        return redirect()->route('manager.dashboard');
     }
     return redirect()->route('portal.index');
 })->middleware('auth');
@@ -87,11 +102,21 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:admin'], 'as' 
     Route::post('/teams/{team}/members', [App\Http\Controllers\AdminController::class, 'updateTeamMembers'])->name('teams.members.update');
     Route::delete('/teams/{team}', [App\Http\Controllers\AdminController::class, 'destroyTeam'])->name('teams.destroy');
     Route::get('/tenants', \App\Livewire\Admin\TenantManager::class)->name('tenants');
+    Route::post('/tenants', [App\Http\Controllers\AdminController::class, 'provisionTenant'])->name('tenants.provision');
+    Route::patch('/tenants/{tenant}/suspend', [App\Http\Controllers\AdminController::class, 'suspendTenant'])->name('tenants.suspend');
+    Route::patch('/tenants/{tenant}/activate', [App\Http\Controllers\AdminController::class, 'activateTenant'])->name('tenants.activate');
     Route::get('/users', \App\Livewire\Admin\UserManager::class)->name('users');
     Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+    Route::patch('/users/{user}', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('users.update');
+    Route::patch('/users/{user}/status', [App\Http\Controllers\AdminController::class, 'toggleUserStatus'])->name('users.status.toggle');
+    Route::post('/invitations', [App\Http\Controllers\AdminController::class, 'sendInvitation'])->name('invitations.send');
+    Route::delete('/invitations/{invitation}', [App\Http\Controllers\AdminController::class, 'cancelInvitation'])->name('invitations.cancel');
 
     // SLA
     Route::get('/sla', \App\Livewire\Admin\SlaManager::class)->name('sla');
+    Route::post('/sla', [App\Http\Controllers\AdminController::class, 'saveSlaPolicy'])->name('sla.save');
+    Route::patch('/sla/{policy}/toggle', [App\Http\Controllers\AdminController::class, 'toggleSlaPolicy'])->name('sla.toggle');
+    Route::delete('/sla/{policy}', [App\Http\Controllers\AdminController::class, 'deleteSlaPolicy'])->name('sla.delete');
 
     // Tickets
     Route::get('/tickets', fn () => view('admin.tickets.index'))->name('tickets.index');
@@ -175,6 +200,14 @@ Route::middleware(['auth', 'role:team_lead|admin'])->prefix('team-lead')->name('
     Route::get('/teams', [App\Http\Controllers\TeamLeadController::class, 'teams'])->name('teams');
     Route::get('/tickets', [App\Http\Controllers\TeamLeadController::class, 'tickets'])->name('tickets');
     Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\TeamLeadController::class, 'showTicket'])->name('tickets.show');
+});
+
+Route::middleware(['auth', 'role:manager|admin'])->prefix('manager')->name('manager.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\ManagerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/teams', [App\Http\Controllers\ManagerController::class, 'teams'])->name('teams');
+    Route::get('/users', [App\Http\Controllers\ManagerController::class, 'users'])->name('users');
+    Route::get('/tickets', [App\Http\Controllers\ManagerController::class, 'tickets'])->name('tickets');
+    Route::get('/tickets/{ticket:ulid}', [App\Http\Controllers\ManagerController::class, 'showTicket'])->name('tickets.show');
 });
 
 // Invitation acceptance (public)

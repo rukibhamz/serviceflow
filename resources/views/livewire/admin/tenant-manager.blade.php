@@ -16,39 +16,43 @@
     @if ($showForm)
     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
         <h3 class="font-medium text-gray-700">New Tenant</h3>
-        <form wire:submit.prevent="provision" class="space-y-4">
+        <form method="POST" action="{{ route('admin.tenants.provision') }}" wire:submit.prevent="provision" class="space-y-4">
+            @csrf
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Organisation Name *</label>
-                    <input wire:model="name" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <input wire:model="name" name="name" value="{{ old('name', $name) }}" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Subdomain *</label>
                     <div class="flex items-center gap-1">
-                        <input wire:model="subdomain" type="text" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="acme">
+                        <input wire:model="subdomain" name="subdomain" value="{{ old('subdomain', $subdomain) }}" type="text" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="acme">
                         <span class="text-xs text-gray-400">.serviceflow.app</span>
                     </div>
                     @error('subdomain') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Admin Name *</label>
-                    <input wire:model="adminName" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <input wire:model="adminName" name="admin_name" value="{{ old('admin_name', $adminName) }}" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @error('adminName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('admin_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Admin Email *</label>
-                    <input wire:model="adminEmail" type="email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <input wire:model="adminEmail" name="admin_email" value="{{ old('admin_email', $adminEmail) }}" type="email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @error('adminEmail') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('admin_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Admin Password *</label>
-                    <input wire:model="adminPassword" type="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <input wire:model="adminPassword" name="admin_password" type="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @error('adminPassword') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('admin_password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                <button type="button" wire:click="$set('showForm', false)" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                <a href="{{ route('admin.tenants') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
                 <button type="submit" class="btn-ds primary">Provision</button>
             </div>
         </form>
@@ -81,12 +85,17 @@
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ $tenant->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3 text-right space-x-2">
                         @if ($tenant->is_active)
-                            <button wire:click="suspend({{ $tenant->id }})"
-                                    wire:confirm="Suspend this tenant?"
-                                    class="text-xs text-orange-500 hover:underline">Suspend</button>
+                            <form method="POST" action="{{ route('admin.tenants.suspend', $tenant) }}" class="inline" onsubmit="return confirm('Suspend this tenant?');">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-xs text-orange-500 hover:underline">Suspend</button>
+                            </form>
                         @else
-                            <button wire:click="activate({{ $tenant->id }})"
-                                    class="text-xs text-green-600 hover:underline">Activate</button>
+                            <form method="POST" action="{{ route('admin.tenants.activate', $tenant) }}" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-xs text-green-600 hover:underline">Activate</button>
+                            </form>
                         @endif
                     </td>
                 </tr>

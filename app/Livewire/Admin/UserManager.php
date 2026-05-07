@@ -35,11 +35,17 @@ class UserManager extends Component
 
     protected $rules = [
         'inviteEmail' => 'required|email|unique:users,email|unique:user_invitations,email',
-        'inviteRole'  => 'required|in:admin,agent,team_lead,end_user,user',
+        'inviteRole'  => 'required|in:admin,agent,manager,team_lead,end_user,user',
     ];
 
     public function mount(): void
     {
+        $editId = (int) request()->query('edit', 0);
+        if ($editId > 0) {
+            $this->editUser($editId);
+            return;
+        }
+
         if (request()->boolean('new')) {
             $this->showInviteForm = true;
         }
@@ -55,7 +61,7 @@ class UserManager extends Component
 
         $this->validate([
             'inviteEmail' => 'required|email|unique:users,email|unique:user_invitations,email',
-            'inviteRole'  => 'required|in:admin,agent,team_lead,end_user,user',
+            'inviteRole'  => 'required|in:admin,agent,manager,team_lead,end_user,user',
         ]);
         $inviteRole = $this->inviteRole === 'user' ? 'end_user' : $this->inviteRole;
 
@@ -126,14 +132,15 @@ class UserManager extends Component
         $this->validate([
             'editName'  => 'required|string|max:255',
             'editEmail' => 'required|email|unique:users,email,' . $this->editingUserId,
-            'editRole'  => 'required|in:admin,agent,manager,end_user',
+            'editRole'  => 'required|in:admin,agent,manager,team_lead,end_user,user',
         ]);
+        $editRole = $this->editRole === 'user' ? 'end_user' : $this->editRole;
 
         $user = User::withoutGlobalScopes()->findOrFail($this->editingUserId);
         $user->update([
             'name'      => $this->editName,
             'email'     => $this->editEmail,
-            'role'      => $this->editRole,
+            'role'      => $editRole,
             'is_active' => $this->editIsActive,
         ]);
 
@@ -142,7 +149,7 @@ class UserManager extends Component
 
         // Sync Spatie role safely
         try {
-            $user->syncRoles([$this->editRole]);
+            $user->syncRoles([$editRole]);
         } catch (\Throwable) {
             // Role may not exist in Spatie — role column is the source of truth
         }
