@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\SlaTimer;
+use App\Models\ServiceCatalogueItem;
 use App\Models\Ticket;
 use App\Services\Reports\ReportBuilder;
 use Livewire\Attributes\On;
@@ -31,6 +32,7 @@ class AdminDashboard extends Component
             'breached'   => SlaTimer::where('breached', true)
                 ->whereHas('ticket', fn ($q) => $q->whereNotIn('status', ['resolved', 'closed']))
                 ->count(),
+            'catalogue_active' => ServiceCatalogueItem::query()->where('is_active', true)->count(),
             'avg_mttr'   => $this->calculateGlobalMttr($reportBuilder),
         ];
 
@@ -58,7 +60,13 @@ class AdminDashboard extends Component
 
     public function render()
     {
-        return view('livewire.admin.admin-dashboard')
+        $recentCatalogue = ServiceCatalogueItem::query()
+            ->with('team')
+            ->latest('id')
+            ->take(8)
+            ->get();
+
+        return view('livewire.admin.admin-dashboard', compact('recentCatalogue'))
             ->layout('layouts.admin');
     }
 }

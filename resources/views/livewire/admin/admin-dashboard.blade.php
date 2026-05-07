@@ -31,6 +31,11 @@
             <div class="stat-val">{{ $globalStats['avg_mttr'] ?? '—' }}</div>
             <div class="stat-delta text-gray-500">Mean time to resolve</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-label">Active Catalogue Items</div>
+            <div class="stat-val text-brand">{{ $globalStats['catalogue_active'] ?? 0 }}</div>
+            <div class="stat-delta text-gray-500">Published service requests</div>
+        </div>
     </div>
 
     {{-- Secondary Row --}}
@@ -90,6 +95,42 @@
                         }
                     })
                 "></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-ds mt-4">
+        <div class="card-hdr">
+            <div class="card-title">Recent Catalogue Items</div>
+        </div>
+        <div class="card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Name</th>
+                        <th class="px-4 py-2 text-left">Type</th>
+                        <th class="px-4 py-2 text-left">Team</th>
+                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left"></th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                    @forelse($recentCatalogue as $item)
+                        <tr>
+                            <td class="px-4 py-2">{{ $item->name }}</td>
+                            <td class="px-4 py-2">{{ ucfirst(str_replace('_', ' ', $item->type)) }}</td>
+                            <td class="px-4 py-2">{{ $item->team?->name ?? 'All teams' }}</td>
+                            <td class="px-4 py-2">{{ $item->is_active ? 'Active' : 'Inactive' }}</td>
+                            <td class="px-4 py-2 text-right">
+                                <a href="{{ route('admin.service-catalogue.edit', $item) }}" class="text-blue-600 hover:underline">Edit</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No catalogue items yet.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

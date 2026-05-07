@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\Ticket;
+use App\Models\ServiceCatalogueItem;
 use Illuminate\Support\Facades\Auth;
 
 class TeamLeadController extends Controller
@@ -19,6 +20,10 @@ class TeamLeadController extends Controller
             'open_tickets' => Ticket::whereIn('team_id', $teamIds)->whereNotIn('status', ['resolved', 'closed'])->count(),
             'changes' => Ticket::whereIn('team_id', $teamIds)->where('type', 'change')->count(),
             'problems' => Ticket::whereIn('team_id', $teamIds)->where('type', 'problem')->count(),
+            'catalogue_active' => ServiceCatalogueItem::query()
+                ->where('is_active', true)
+                ->whereIn('team_id', $teamIds)
+                ->count(),
         ];
 
         $recentTickets = Ticket::with(['requester', 'team'])
@@ -27,7 +32,14 @@ class TeamLeadController extends Controller
             ->take(10)
             ->get();
 
-        return view('team-lead.dashboard', compact('stats', 'recentTickets'));
+        $recentCatalogue = ServiceCatalogueItem::query()
+            ->with('team')
+            ->whereIn('team_id', $teamIds)
+            ->latest('id')
+            ->take(8)
+            ->get();
+
+        return view('team-lead.dashboard', compact('stats', 'recentTickets', 'recentCatalogue'));
     }
 
     public function teams()

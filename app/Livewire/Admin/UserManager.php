@@ -29,7 +29,7 @@ class UserManager extends Component
     public ?int   $editingUserId  = null;
     public string $editName       = '';
     public string $editEmail      = '';
-    public string $editRole       = 'end_user';
+    public array  $editRoles      = ['end_user'];
     public bool   $editIsActive   = true;
     public array  $editTeams      = [];
 
@@ -122,7 +122,8 @@ class UserManager extends Component
         $this->editingUserId = $id;
         $this->editName      = $user->name;
         $this->editEmail     = $user->email;
-        $this->editRole      = $user->role ?? 'end_user';
+        $roles = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
+        $this->editRoles     = ! empty($roles) ? array_values($roles) : [$user->role ?? 'end_user'];
         $this->editIsActive  = (bool) ($user->is_active ?? true);
         $this->editTeams     = $user->teams()->pluck('teams.id')->map(fn($id) => (string)$id)->toArray();
     }
@@ -132,15 +133,21 @@ class UserManager extends Component
         $this->validate([
             'editName'  => 'required|string|max:255',
             'editEmail' => 'required|email|unique:users,email,' . $this->editingUserId,
-            'editRole'  => 'required|in:admin,agent,manager,team_lead,end_user,user',
+            'editRoles' => 'required|array|min:1',
+            'editRoles.*' => 'in:admin,agent,manager,team_lead,end_user,user',
         ]);
-        $editRole = $this->editRole === 'user' ? 'end_user' : $this->editRole;
+        $roles = collect($this->editRoles)
+            ->map(fn ($role) => $role === 'user' ? 'end_user' : $role)
+            ->unique()
+            ->values()
+            ->all();
+        $primaryRole = $roles[0] ?? 'end_user';
 
         $user = User::withoutGlobalScopes()->findOrFail($this->editingUserId);
         $user->update([
             'name'      => $this->editName,
             'email'     => $this->editEmail,
-            'role'      => $editRole,
+            'role'      => $primaryRole,
             'is_active' => $this->editIsActive,
         ]);
 
@@ -149,7 +156,7 @@ class UserManager extends Component
 
         // Sync Spatie role safely
         try {
-            $user->syncRoles([$editRole]);
+            $user->syncRoles($roles);
         } catch (\Throwable) {
             // Role may not exist in Spatie — role column is the source of truth
         }

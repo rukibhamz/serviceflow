@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\ServiceCatalogueItem;
 
 class ManagerController extends Controller
 {
@@ -17,6 +18,7 @@ class ManagerController extends Controller
             'open_tickets' => Ticket::whereNotIn('status', ['resolved', 'closed'])->count(),
             'changes' => Ticket::where('type', 'change')->count(),
             'problems' => Ticket::where('type', 'problem')->count(),
+            'catalogue_active' => ServiceCatalogueItem::query()->where('is_active', true)->count(),
         ];
 
         $recentTickets = Ticket::with(['requester', 'team'])
@@ -24,7 +26,13 @@ class ManagerController extends Controller
             ->take(12)
             ->get();
 
-        return view('manager.dashboard', compact('stats', 'recentTickets'));
+        $recentCatalogue = ServiceCatalogueItem::query()
+            ->with('team')
+            ->latest('id')
+            ->take(8)
+            ->get();
+
+        return view('manager.dashboard', compact('stats', 'recentTickets', 'recentCatalogue'));
     }
 
     public function teams()

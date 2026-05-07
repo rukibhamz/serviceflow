@@ -47,16 +47,18 @@
                         <label class="form-label">Confirm Password *</label>
                         <input name="password_confirmation" type="password" class="form-input-ds" required>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Role *</label>
-                        <select name="role" class="form-input-ds" required>
-                            <option value="end_user" @selected(old('role', 'end_user') === 'end_user')>User (Portal)</option>
-                            <option value="agent" @selected(old('role') === 'agent')>Agent</option>
-                            <option value="team_lead" @selected(old('role') === 'team_lead')>Team Lead</option>
-                            <option value="admin" @selected(old('role') === 'admin')>Admin</option>
-                            <option value="manager" @selected(old('role') === 'manager')>Manager</option>
-                        </select>
-                        @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <div class="form-group sm:col-span-2">
+                        <label class="form-label">Roles *</label>
+                        <div class="space-y-1 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                            @foreach(['end_user' => 'User (Portal)', 'agent' => 'Agent', 'team_lead' => 'Team Lead', 'manager' => 'Manager', 'admin' => 'Admin'] as $roleValue => $roleLabel)
+                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                                    <input type="checkbox" name="roles[]" value="{{ $roleValue }}" @checked(in_array($roleValue, old('roles', ['end_user']), true)) class="rounded border-gray-300">
+                                    {{ $roleLabel }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('roles') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('roles.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="form-group flex items-end">
                         <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
@@ -131,15 +133,17 @@
                     @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Role</label>
-                    <select wire:model="editRole" name="role" class="form-input-ds">
-                        <option value="end_user" @selected($editRole === 'end_user')>User (Portal)</option>
-                        <option value="agent" @selected($editRole === 'agent')>Agent</option>
-                        <option value="team_lead" @selected($editRole === 'team_lead')>Team Lead</option>
-                        <option value="manager" @selected($editRole === 'manager')>Manager</option>
-                        <option value="admin" @selected($editRole === 'admin')>Admin</option>
-                    </select>
-                    @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="form-label">Roles</label>
+                    <div class="space-y-1 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                        @foreach(['end_user' => 'User (Portal)', 'agent' => 'Agent', 'team_lead' => 'Team Lead', 'manager' => 'Manager', 'admin' => 'Admin'] as $roleValue => $roleLabel)
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
+                            <input type="checkbox" wire:model="editRoles" name="roles[]" value="{{ $roleValue }}" @checked(in_array($roleValue, $editRoles, true)) class="rounded border-gray-300">
+                            {{ $roleLabel }}
+                        </label>
+                        @endforeach
+                    </div>
+                    @error('editRoles') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('editRoles.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="form-group">
                     <label class="form-label">Teams</label>
@@ -266,13 +270,21 @@
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $user->email }}</td>
                         <td class="px-4 py-3">
-                            <span class="text-xs px-2 py-0.5 rounded-full {{ match($user->role) {
-                                'admin' => 'bg-purple-100 text-purple-700',
-                                'agent' => 'bg-blue-100 text-blue-700',
-                                'team_lead' => 'bg-emerald-100 text-emerald-700',
-                                'manager' => 'bg-fuchsia-100 text-fuchsia-700',
-                                default => 'bg-gray-100 text-gray-600',
-                            } }}">{{ ucfirst(str_replace('_', ' ', $user->role ?? 'user')) }}</span>
+                            @php
+                                $roleNames = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->toArray() : [];
+                                if (empty($roleNames) && !empty($user->role)) { $roleNames = [$user->role]; }
+                            @endphp
+                            <div class="flex flex-wrap gap-1">
+                                @foreach($roleNames as $roleName)
+                                    <span class="text-xs px-2 py-0.5 rounded-full {{ match($roleName) {
+                                        'admin' => 'bg-purple-100 text-purple-700',
+                                        'agent' => 'bg-blue-100 text-blue-700',
+                                        'team_lead' => 'bg-emerald-100 text-emerald-700',
+                                        'manager' => 'bg-fuchsia-100 text-fuchsia-700',
+                                        default => 'bg-gray-100 text-gray-600',
+                                    } }}">{{ ucfirst(str_replace('_', ' ', $roleName)) }}</span>
+                                @endforeach
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
                             {{ $user->teams->pluck('name')->join(', ') ?: '—' }}

@@ -56,12 +56,58 @@
             @error('team_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
 
+        @if($type === 'change')
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Approvers</label>
+                <input type="text" wire:model.live.debounce.250ms="approver_search" class="form-input-ds mt-1" placeholder="Search manager/team lead by name or email">
+                <div class="mt-1 flex items-center gap-2">
+                    <select wire:model="selected_change_approver_id" class="form-input-ds">
+                        <option value="">Select approver</option>
+                        @foreach($approverUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                        @endforeach
+                    </select>
+                    <button type="button" wire:click="addApprover" class="btn-ds ghost">Add Approver</button>
+                </div>
+
+                @if(!empty($change_approver_ids))
+                    <div class="mt-2 space-y-1">
+                        @foreach($change_approver_ids as $approverId)
+                            @php $approver = $approverUsers->firstWhere('id', (int) $approverId); @endphp
+                            @if($approver)
+                                <div class="flex items-center justify-between rounded border border-slate-200 bg-slate-50 px-2 py-1 text-sm">
+                                    <span>{{ $approver->name }} ({{ $approver->email }})</span>
+                                    <button type="button" wire:click="removeApprover({{ $approver->id }})" class="text-red-600 hover:underline">Remove</button>
+                                </div>
+                                <input type="hidden" name="change_approver_ids[]" value="{{ $approver->id }}">
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+
+                @if(empty($change_approver_ids))
+                    <input type="hidden" name="change_approver_ids" value="">
+                @endif
+
+                <p class="mt-1 text-xs text-gray-500">Only Team Leads and Managers can be selected as approvers.</p>
+                @error('selected_change_approver_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                @error('change_approver_ids') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                @error('change_approver_ids.*') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            </div>
+
+            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input type="hidden" name="submit_for_approval" value="0">
+                <input type="checkbox" wire:model="submit_for_approval" name="submit_for_approval" value="1" class="rounded border-gray-300">
+                Request approval immediately after creating this change
+            </label>
+        @endif
+
         <div>
             <label class="block text-sm font-medium text-gray-700">Subject</label>
             <input type="text" wire:model="subject" name="subject" class="form-input-ds mt-1" placeholder="Brief summary of the issue">
             @error('subject') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
-
+        
         <div>
             <label class="block text-sm font-medium text-gray-700">Description</label>
             <textarea wire:model="description" name="description" rows="5" class="form-input-ds mt-1" placeholder="Detailed description of the request or incident"></textarea>

@@ -96,25 +96,28 @@ class AdminController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,agent,manager,team_lead,end_user,user',
+            'role' => 'nullable|in:admin,agent,manager,team_lead,end_user,user',
+            'roles' => 'nullable|array|min:1',
+            'roles.*' => 'in:admin,agent,manager,team_lead,end_user,user',
             'is_active' => 'nullable|boolean',
             'teams' => 'array',
             'teams.*' => 'integer|exists:teams,id',
         ]);
 
-        $role = $data['role'] === 'user' ? 'end_user' : $data['role'];
+        $roles = $this->normalizeRoles($data['roles'] ?? [$data['role'] ?? 'end_user']);
+        $primaryRole = $roles[0] ?? 'end_user';
 
         $user->update([
             'name' => $data['name'],
             'email' => $data['email'],
-            'role' => $role,
+            'role' => $primaryRole,
             'is_active' => (bool) ($data['is_active'] ?? false),
         ]);
 
         $user->teams()->sync($data['teams'] ?? []);
 
         try {
-            $user->syncRoles([$role]);
+            $user->syncRoles($roles);
         } catch (\Throwable) {
             // ignore role-sync failures and keep role column as source of truth
         }
@@ -206,24 +209,50 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,agent,manager,team_lead,end_user,user',
+            'role' => 'nullable|in:admin,agent,manager,team_lead,end_user,user',
+            'roles' => 'nullable|array|min:1',
+            'roles.*' => 'in:admin,agent,manager,team_lead,end_user,user',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $role = $data['role'] === 'user' ? 'end_user' : $data['role'];
+        $roles = $this->normalizeRoles($data['roles'] ?? [$data['role'] ?? 'end_user']);
+        $primaryRole = $roles[0] ?? 'end_user';
 
         $user = User::create([
             'tenant_id' => Auth::user()?->tenant_id,
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $role,
+            'role' => $primaryRole,
             'is_active' => (bool) ($data['is_active'] ?? false),
         ]);
 
-        $user->syncRoles([$role]);
+        $user->syncRoles($roles);
 
         return redirect()->route('admin.users')->with('success', "User {$user->name} created successfully.");
+    }
+
+    /**
+     * @param  array<int, string>  $roles
+     * @return array<int, string>
+     */
+    private function normalizeRoles(array $roles): array
+    {
+        $normalized = collect($roles)
+            ->map(fn ($role) => $role === 'user' ? 'end_user' : $role)
+            ->filter()
+            ->unique()
+            ->sortBy(fn ($role) => match ($role) {
+                'admin' => 1,
+                'manager' => 2,
+                'team_lead' => 3,
+                'agent' => 4,
+                default => 5,
+            })
+            ->values()
+            ->all();
+
+        return ! empty($normalized) ? $normalized : ['end_user'];
     }
 
     public function storeTeam(Request $request): \Illuminate\Http\RedirectResponse
