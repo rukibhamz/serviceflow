@@ -16,3 +16,22 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Local runtime / machine-specific files (never deploy)
+/_internal_storage/
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/testing/
+/storage/framework/views/
+/bootstrap/cache/*.php
+/bootstrap/cache/*.json
+
+# Local uploads and ad-hoc assets
+/uploads/
+/tmp/
+/temp/
+
+# Local environment overrides
+.env.local
+.env.*.local
