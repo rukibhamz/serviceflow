@@ -36,6 +36,10 @@ class AuthController extends Controller
             return redirect()->intended(route('admin.dashboard'));
         }
 
+        if ($user->hasRole('team_lead') || $user->role === 'team_lead') {
+            return redirect()->intended(route('team-lead.dashboard'));
+        }
+
         if ($user->hasRole('agent') || $user->role === 'agent') {
             return redirect()->intended(route('agent.dashboard'));
         }

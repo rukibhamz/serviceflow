@@ -23,19 +23,19 @@ class UserManager extends Component
     // Invite form
     public bool   $showInviteForm = false;
     public string $inviteEmail    = '';
-    public string $inviteRole     = 'user';
+    public string $inviteRole     = 'end_user';
 
     // Edit user panel
     public ?int   $editingUserId  = null;
     public string $editName       = '';
     public string $editEmail      = '';
-    public string $editRole       = 'user';
+    public string $editRole       = 'end_user';
     public bool   $editIsActive   = true;
     public array  $editTeams      = [];
 
     protected $rules = [
         'inviteEmail' => 'required|email|unique:users,email|unique:user_invitations,email',
-        'inviteRole'  => 'required|in:admin,agent,user',
+        'inviteRole'  => 'required|in:admin,agent,team_lead,end_user,user',
     ];
 
     public function mount(): void
@@ -55,13 +55,14 @@ class UserManager extends Component
 
         $this->validate([
             'inviteEmail' => 'required|email|unique:users,email|unique:user_invitations,email',
-            'inviteRole'  => 'required|in:admin,agent,user',
+            'inviteRole'  => 'required|in:admin,agent,team_lead,end_user,user',
         ]);
+        $inviteRole = $this->inviteRole === 'user' ? 'end_user' : $this->inviteRole;
 
         try {
             $invitation = UserInvitation::create([
                 'email'      => $this->inviteEmail,
-                'role'       => $this->inviteRole,
+                'role'       => $inviteRole,
                 'token'      => Str::random(40),
                 'invited_by' => Auth::id(),
                 'expires_at' => now()->addDays(7),
@@ -70,7 +71,7 @@ class UserManager extends Component
             Log::error('User invitation creation failed.', [
                 'message' => $e->getMessage(),
                 'email' => $this->inviteEmail,
-                'role' => $this->inviteRole,
+                'role' => $inviteRole,
                 'user_id' => Auth::id(),
             ]);
             $this->addError('inviteGeneral', 'Unable to create invitation right now. Please check DB/migrations and try again.');
@@ -87,7 +88,7 @@ class UserManager extends Component
         }
 
         $this->inviteEmail    = '';
-        $this->inviteRole     = 'user';
+        $this->inviteRole     = 'end_user';
         $this->showInviteForm = false;
 
         session()->flash('success', "Invitation sent to {$invitation->email}.");
@@ -97,7 +98,7 @@ class UserManager extends Component
     {
         $this->resetValidation();
         $this->reset(['inviteEmail']);
-        $this->inviteRole = 'user';
+        $this->inviteRole = 'end_user';
         $this->showInviteForm = true;
     }
 
@@ -111,13 +112,13 @@ class UserManager extends Component
 
     public function editUser(int $id): void
     {
-        $user = User::findOrFail($id);
+        $user = User::withoutGlobalScopes()->findOrFail($id);
         $this->editingUserId = $id;
         $this->editName      = $user->name;
         $this->editEmail     = $user->email;
-        $this->editRole      = $user->role ?? 'user';
-        $this->editIsActive  = $user->is_active ?? true;
-        $this->editTeams     = $user->teams()->pluck('teams.id')->toArray();
+        $this->editRole      = $user->role ?? 'end_user';
+        $this->editIsActive  = (bool) ($user->is_active ?? true);
+        $this->editTeams     = $user->teams()->pluck('teams.id')->map(fn($id) => (string)$id)->toArray();
     }
 
     public function saveUser(): void
@@ -125,10 +126,10 @@ class UserManager extends Component
         $this->validate([
             'editName'  => 'required|string|max:255',
             'editEmail' => 'required|email|unique:users,email,' . $this->editingUserId,
-            'editRole'  => 'required|in:admin,agent,user',
+            'editRole'  => 'required|in:admin,agent,manager,end_user',
         ]);
 
-        $user = User::findOrFail($this->editingUserId);
+        $user = User::withoutGlobalScopes()->findOrFail($this->editingUserId);
         $user->update([
             'name'      => $this->editName,
             'email'     => $this->editEmail,
@@ -139,8 +140,12 @@ class UserManager extends Component
         // Sync teams
         $user->teams()->sync($this->editTeams);
 
-        // Sync Spatie role
-        $user->syncRoles([$this->editRole]);
+        // Sync Spatie role safely
+        try {
+            $user->syncRoles([$this->editRole]);
+        } catch (\Throwable) {
+            // Role may not exist in Spatie — role column is the source of truth
+        }
 
         $this->editingUserId = null;
         session()->flash('success', 'User updated.');
@@ -148,15 +153,15 @@ class UserManager extends Component
 
     public function toggleActive(int $id): void
     {
-        $user = User::findOrFail($id);
-        $user->is_active = ! $user->is_active;
+        $user = User::withoutGlobalScopes()->findOrFail($id);
+        $user->is_active = ! ((bool) $user->is_active);
         $user->save();
         session()->flash('success', $user->is_active ? 'User activated.' : 'User deactivated.');
     }
 
     public function render()
     {
-        $users = User::with('teams')
+        $users = User::withoutGlobalScopes()->with('teams')
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
                   ->orWhere('email', 'like', "%{$this->search}%");

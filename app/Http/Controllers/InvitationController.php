@@ -28,22 +28,25 @@ class InvitationController extends Controller
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
             ->firstOrFail();
+        $inviter = User::find($invitation->invited_by);
 
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
+        $role = $invitation->role === 'user' ? 'end_user' : $invitation->role;
 
         $user = User::create([
+            'tenant_id' => $inviter?->tenant_id,
             'name'      => $validated['name'],
             'email'     => $invitation->email,
             'password'  => Hash::make($validated['password']),
-            'role'      => $invitation->role,
+            'role'      => $role,
             'is_active' => true,
         ]);
 
         // Assign Spatie role
-        $user->assignRole($invitation->role);
+        $user->assignRole($role);
 
         // Mark invitation as accepted
         $invitation->update(['accepted_at' => now()]);

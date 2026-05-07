@@ -3,14 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\Team;
+use App\Models\User;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
+    public function storeUser(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:admin,agent,team_lead,end_user,user',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $role = $data['role'] === 'user' ? 'end_user' : $data['role'];
+
+        $user = User::create([
+            'tenant_id' => Auth::user()?->tenant_id,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $role,
+            'is_active' => (bool) ($data['is_active'] ?? false),
+        ]);
+
+        $user->syncRoles([$role]);
+
+        return redirect()->route('admin.users')->with('success', "User {$user->name} created successfully.");
+    }
+
     public function storeTeam(Request $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validate([
@@ -47,9 +75,13 @@ class AdminController extends Controller
         $data = $request->validate([
             'selectedAgents' => 'array',
             'selectedAgents.*' => 'integer|exists:users,id',
+            'team_lead_id' => 'nullable|integer|exists:users,id',
         ]);
 
         $team->members()->sync($data['selectedAgents'] ?? []);
+        $team->update([
+            'team_lead_id' => $data['team_lead_id'] ?? null,
+        ]);
 
         return redirect()->route('admin.teams')->with('success', 'Team members updated.');
     }

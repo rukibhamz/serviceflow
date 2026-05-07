@@ -16,6 +16,7 @@ class TicketKanban extends Component
             try {
                 $machine = app(TicketStatusMachine::class);
                 $machine->transition($ticket, $newStatus);
+                session()->flash('success', 'Ticket status updated.');
             } catch (\Throwable $e) {
                 $this->addError('status', $e->getMessage());
             }

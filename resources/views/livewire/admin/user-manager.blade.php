@@ -10,11 +10,68 @@
                placeholder="Search users…"
                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
         <div class="ml-auto">
+            <a href="{{ route('admin.users', ['add' => 1]) }}" class="btn-ds primary inline-flex items-center mr-2">
+                + Add User
+            </a>
             <a href="{{ route('admin.users', ['new' => 1]) }}" class="btn-ds primary inline-flex items-center">
                 + Invite User
             </a>
         </div>
     </div>
+
+    {{-- Direct add user form --}}
+    @if(request()->boolean('add') || (old('_form') === 'add_user' && $errors->any()))
+    <div class="card-ds">
+        <div class="card-hdr"><div class="card-title">Add User</div></div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
+                @csrf
+                <input type="hidden" name="_form" value="add_user">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input name="name" type="text" value="{{ old('name') }}" class="form-input-ds" required>
+                        @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input name="email" type="email" value="{{ old('email') }}" class="form-input-ds" required>
+                        @error('email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input name="password" type="password" class="form-input-ds" required>
+                        @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password *</label>
+                        <input name="password_confirmation" type="password" class="form-input-ds" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role *</label>
+                        <select name="role" class="form-input-ds" required>
+                            <option value="end_user" @selected(old('role', 'end_user') === 'end_user')>User (Portal)</option>
+                            <option value="agent" @selected(old('role') === 'agent')>Agent</option>
+                            <option value="team_lead" @selected(old('role') === 'team_lead')>Team Lead</option>
+                            <option value="admin" @selected(old('role') === 'admin')>Admin</option>
+                        </select>
+                        @error('role') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="form-group flex items-end">
+                        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                            <input name="is_active" type="checkbox" value="1" @checked(old('is_active', '1') === '1') class="rounded border-gray-300">
+                            Active account
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+                    <a href="{{ route('admin.users') }}" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
+                    <button type="submit" class="btn-ds primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     {{-- Invite form --}}
     @if ($showInviteForm)
@@ -32,8 +89,9 @@
                     <div class="form-group">
                         <label class="form-label">Role *</label>
                         <select wire:model.defer="inviteRole" class="form-input-ds">
-                            <option value="user">User (Portal)</option>
+                            <option value="end_user">User (Portal)</option>
                             <option value="agent">Agent</option>
+                            <option value="manager">Manager</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
@@ -66,8 +124,9 @@
                 <div class="form-group">
                     <label class="form-label">Role</label>
                     <select wire:model="editRole" class="form-input-ds">
-                        <option value="user">User (Portal)</option>
+                        <option value="end_user">User (Portal)</option>
                         <option value="agent">Agent</option>
+                        <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
@@ -152,6 +211,30 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
+                    @foreach($pendingInvitations as $inv)
+                    <tr class="hover:bg-gray-50 bg-amber-50/40">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                    IN
+                                </div>
+                                <span class="font-medium text-gray-800">Pending Invite</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">{{ $inv->email }}</td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ ucfirst($inv->role) }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">—</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Invited</span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-400 text-xs">Expires {{ $inv->expires_at->format('d M Y') }}</td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <button wire:click="cancelInvitation({{ $inv->id }})" wire:confirm="Cancel this invitation?" class="text-xs text-red-500 hover:underline">Cancel</button>
+                        </td>
+                    </tr>
+                    @endforeach
                     @forelse ($users as $user)
                     <tr class="hover:bg-gray-50 {{ !$user->is_active ? 'opacity-60' : '' }}">
                         <td class="px-4 py-3">
@@ -167,8 +250,9 @@
                             <span class="text-xs px-2 py-0.5 rounded-full {{ match($user->role) {
                                 'admin' => 'bg-purple-100 text-purple-700',
                                 'agent' => 'bg-blue-100 text-blue-700',
+                                'team_lead' => 'bg-emerald-100 text-emerald-700',
                                 default => 'bg-gray-100 text-gray-600',
-                            } }}">{{ ucfirst($user->role ?? 'user') }}</span>
+                            } }}">{{ ucfirst(str_replace('_', ' ', $user->role ?? 'user')) }}</span>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
                             {{ $user->teams->pluck('name')->join(', ') ?: '—' }}

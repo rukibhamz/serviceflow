@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Services\Tickets\TicketStatusMachine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class TicketController extends Controller
 {
@@ -49,6 +51,19 @@ class TicketController extends Controller
         $routePrefix = $request->is('admin/*') ? 'admin' : 'agent';
         return redirect()->route($routePrefix . '.tickets.show', $ticket)
             ->with('message', 'Ticket created successfully.');
+    }
+
+    public function updateStatus(Request $request, Ticket $ticket): Response
+    {
+        $data = $request->validate([
+            'status' => 'required|string|in:open,in_progress,pending,resolved,closed',
+        ]);
+
+        if ($ticket->status !== $data['status']) {
+            app(TicketStatusMachine::class)->transition($ticket, $data['status']);
+        }
+
+        return response()->noContent();
     }
 }
 

@@ -20,6 +20,7 @@ class TeamManager extends Component
     // Membership management
     public int $selectedTeamId = 0;
     public array $selectedAgents = [];
+    public ?int $selectedTeamLeadId = null;
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -51,6 +52,7 @@ class TeamManager extends Component
             if ($team) {
                 $this->selectedTeamId = $team->id;
                 $this->selectedAgents = $team->members()->pluck('users.id')->toArray();
+                $this->selectedTeamLeadId = $team->team_lead_id;
             }
         }
     }
@@ -146,8 +148,15 @@ class TeamManager extends Component
     public function render()
     {
         return view('livewire.admin.team-manager', [
-            'teams'     => Team::withCount('members')->latest('id')->paginate(10),
-            'allAgents' => User::whereIn('role', ['agent', 'admin'])->orWhereHas('roles', fn($q) => $q->whereIn('name', ['agent', 'admin']))->orderBy('name')->get(),
+            'teams'     => Team::with('lead')->withCount('members')->latest('id')->paginate(10),
+            'allAgents' => User::whereIn('role', ['agent', 'admin', 'team_lead'])
+                ->orWhereHas('roles', fn($q) => $q->whereIn('name', ['agent', 'admin', 'team_lead']))
+                ->orderBy('name')
+                ->get(),
+            'teamLeadUsers' => User::whereIn('role', ['team_lead', 'admin'])
+                ->orWhereHas('roles', fn($q) => $q->whereIn('name', ['team_lead', 'admin']))
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']),
         ])->layout('layouts.admin');
     }
 }

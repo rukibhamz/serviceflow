@@ -11,7 +11,7 @@ class TicketStatusMachine
         'open'        => ['in_progress', 'pending', 'resolved', 'closed'],
         'in_progress' => ['open', 'pending', 'resolved', 'closed'],
         'pending'     => ['open', 'in_progress', 'resolved', 'closed'],
-        'resolved'    => ['open', 'in_progress', 'closed'],
+        'resolved'    => ['open', 'in_progress', 'pending', 'closed'],
         'closed'      => ['open'],
     ];
 

@@ -1,12 +1,66 @@
-<div class="h-full mt-4" x-data="kanbanBoard()">
+@php $routePrefix = request()->routeIs('admin.*') ? 'admin' : 'agent'; @endphp
+<div class="h-full mt-4" x-data="{
+    draggedTicketId: null,
+    activeColumn: null,
+    busy: false,
+    statusUrlTemplate: @js(route($routePrefix . '.tickets.status.update', ['ticket' => '__TICKET__'])),
+    csrf: @js(csrf_token()),
+    dragStart(e, ticketId) {
+        this.draggedTicketId = ticketId;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(ticketId));
+        setTimeout(() => e.currentTarget.classList.add('opacity-50'), 0);
+    },
+    dragEnd() {
+        this.draggedTicketId = null;
+        this.activeColumn = null;
+        document.querySelectorAll('.opacity-50').forEach(el => el.classList.remove('opacity-50'));
+    },
+    dragOver() {},
+    dragEnter(status) {
+        this.activeColumn = status;
+    },
+    dragLeave() {
+        this.activeColumn = null;
+    },
+    async drop(e, newStatus) {
+        this.activeColumn = null;
+        const droppedId = this.draggedTicketId ?? Number(e.dataTransfer.getData('text/plain'));
+        if (!droppedId || this.busy) return;
+        this.busy = true;
+        try {
+            const url = this.statusUrlTemplate.replace('__TICKET__', String(droppedId));
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': this.csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (!res.ok) {
+                const body = await res.text();
+                throw new Error(body || ('Status update failed with HTTP ' + res.status));
+            }
+            window.location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('Unable to update ticket status. Please try again.');
+        }
+        this.busy = false;
+        this.dragEnd();
+    }
+}">
     <div class="flex flex-nowrap gap-4 overflow-x-auto pb-4 items-start minimal-scrollbar h-full min-h-[70vh]">
         @foreach($statuses as $status)
             <div 
                 class="flex-shrink-0 w-80 bg-gray-100 rounded-lg shadow-sm flex flex-col max-h-full"
-                @dragover.prevent="dragOver($event, '{{ $status }}')"
+                @dragover.prevent="dragOver()"
                 @drop.prevent="drop($event, '{{ $status }}')"
-                @dragenter.prevent="dragEnter($event, '{{ $status }}')"
-                @dragleave.prevent="dragLeave($event)"
+                @dragenter.prevent="dragEnter('{{ $status }}')"
+                @dragleave.prevent="dragLeave()"
                 :class="{ 'bg-blue-50 ring-2 ring-blue-400': activeColumn === '{{ $status }}' }"
             >
                 <div class="px-4 py-3 border-b border-gray-200">
@@ -19,6 +73,7 @@
                 <div class="p-3 overflow-y-auto flex-1 space-y-3 minimal-scrollbar" style="min-height: 150px;">
                     @foreach($ticketsByStatus[$status] as $ticket)
                         <div 
+                            wire:key="kanban-ticket-{{ $ticket->id }}"
                             draggable="true"
                             @dragstart="dragStart($event, {{ $ticket->id }})"
                             @dragend="dragEnd()"
@@ -70,43 +125,6 @@
         </div>
     @enderror
 
-    {{-- Alpine kanban script --}}
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('kanbanBoard', () => ({
-                draggedTicketId: null,
-                activeColumn: null,
-                
-                dragStart(e, ticketId) {
-                    this.draggedTicketId = ticketId;
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', ticketId);
-                    setTimeout(() => e.target.classList.add('opacity-50'), 0);
-                },
-                dragEnd(e) {
-                    this.draggedTicketId = null;
-                    this.activeColumn = null;
-                    document.querySelectorAll('.opacity-50').forEach(el => el.classList.remove('opacity-50'));
-                },
-                dragOver(e, status) {
-                    // PrevenDefault is handled by @dragover.prevent
-                },
-                dragEnter(e, status) {
-                    this.activeColumn = status;
-                },
-                dragLeave(e) {
-                    this.activeColumn = null;
-                },
-                drop(e, newStatus) {
-                    this.activeColumn = null;
-                    if (this.draggedTicketId) {
-                        @this.call('updateTicketStatus', this.draggedTicketId, newStatus);
-                    }
-                }
-            }))
-        })
-    </script>
-    
     <style>
         .minimal-scrollbar::-webkit-scrollbar {
             width: 6px;

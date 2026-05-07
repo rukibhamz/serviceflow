@@ -100,3 +100,6 @@ Did you mean one of these?
 [2026-05-06 17:24:07] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 | GET http://localhost/serviceflow
 [2026-05-06 18:33:18] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected '=' on line 1 | GET http://localhost/serviceflow
 [2026-05-06 18:33:28] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected '=' on line 1 | GET http://localhost/serviceflow
+[2026-05-06 18:59:50] Exception: App\Exceptions\InvalidStatusTransitionException - Cannot transition ticket from 'resolved' to 'pending'. | PATCH http://localhost/serviceflow/admin/tickets/5/status
+[2026-05-07 07:50:05] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 2 | GET http://localhost/serviceflow
+[2026-05-07 15:55:51] Exception: Psy\Exception\ParseErrorException - PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 3 | GET http://localhost/serviceflow

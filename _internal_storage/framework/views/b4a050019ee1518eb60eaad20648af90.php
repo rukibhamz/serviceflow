@@ -10,11 +10,96 @@
                placeholder="Search users…"
                class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64">
         <div class="ml-auto">
+            <a href="<?php echo e(route('admin.users', ['add' => 1])); ?>" class="btn-ds primary inline-flex items-center mr-2">
+                + Add User
+            </a>
             <a href="<?php echo e(route('admin.users', ['new' => 1])); ?>" class="btn-ds primary inline-flex items-center">
                 + Invite User
             </a>
         </div>
     </div>
+
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(request()->boolean('add') || (old('_form') === 'add_user' && $errors->any())): ?>
+    <div class="card-ds">
+        <div class="card-hdr"><div class="card-title">Add User</div></div>
+        <div class="card-body">
+            <form method="POST" action="<?php echo e(route('admin.users.store')); ?>" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="_form" value="add_user">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input name="name" type="text" value="<?php echo e(old('name')); ?>" class="form-input-ds" required>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input name="email" type="email" value="<?php echo e(old('email')); ?>" class="form-input-ds" required>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input name="password" type="password" class="form-input-ds" required>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password *</label>
+                        <input name="password_confirmation" type="password" class="form-input-ds" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role *</label>
+                        <select name="role" class="form-input-ds" required>
+                            <option value="end_user" <?php if(old('role', 'end_user') === 'end_user'): echo 'selected'; endif; ?>>User (Portal)</option>
+                            <option value="agent" <?php if(old('role') === 'agent'): echo 'selected'; endif; ?>>Agent</option>
+                            <option value="team_lead" <?php if(old('role') === 'team_lead'): echo 'selected'; endif; ?>>Team Lead</option>
+                            <option value="admin" <?php if(old('role') === 'admin'): echo 'selected'; endif; ?>>Admin</option>
+                        </select>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['role'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-xs mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </div>
+                    <div class="form-group flex items-end">
+                        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                            <input name="is_active" type="checkbox" value="1" <?php if(old('is_active', '1') === '1'): echo 'checked'; endif; ?> class="rounded border-gray-300">
+                            Active account
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+                    <a href="<?php echo e(route('admin.users')); ?>" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</a>
+                    <button type="submit" class="btn-ds primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     
     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showInviteForm): ?>
@@ -46,8 +131,9 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                     <div class="form-group">
                         <label class="form-label">Role *</label>
                         <select wire:model.defer="inviteRole" class="form-input-ds">
-                            <option value="user">User (Portal)</option>
+                            <option value="end_user">User (Portal)</option>
                             <option value="agent">Agent</option>
+                            <option value="manager">Manager</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
@@ -94,8 +180,9 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                 <div class="form-group">
                     <label class="form-label">Role</label>
                     <select wire:model="editRole" class="form-input-ds">
-                        <option value="user">User (Portal)</option>
+                        <option value="end_user">User (Portal)</option>
                         <option value="agent">Agent</option>
+                        <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
@@ -181,6 +268,30 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $pendingInvitations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inv): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr class="hover:bg-gray-50 bg-amber-50/40">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                    IN
+                                </div>
+                                <span class="font-medium text-gray-800">Pending Invite</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs"><?php echo e($inv->email); ?></td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"><?php echo e(ucfirst($inv->role)); ?></span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">—</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Invited</span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-400 text-xs">Expires <?php echo e($inv->expires_at->format('d M Y')); ?></td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                            <button wire:click="cancelInvitation(<?php echo e($inv->id); ?>)" wire:confirm="Cancel this invitation?" class="text-xs text-red-500 hover:underline">Cancel</button>
+                        </td>
+                    </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <tr class="hover:bg-gray-50 <?php echo e(!$user->is_active ? 'opacity-60' : ''); ?>">
                         <td class="px-4 py-3">
@@ -197,8 +308,9 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                             <span class="text-xs px-2 py-0.5 rounded-full <?php echo e(match($user->role) {
                                 'admin' => 'bg-purple-100 text-purple-700',
                                 'agent' => 'bg-blue-100 text-blue-700',
+                                'team_lead' => 'bg-emerald-100 text-emerald-700',
                                 default => 'bg-gray-100 text-gray-600',
-                            }); ?>"><?php echo e(ucfirst($user->role ?? 'user')); ?></span>
+                            }); ?>"><?php echo e(ucfirst(str_replace('_', ' ', $user->role ?? 'user'))); ?></span>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
                             <?php echo e($user->teams->pluck('name')->join(', ') ?: '—'); ?>
