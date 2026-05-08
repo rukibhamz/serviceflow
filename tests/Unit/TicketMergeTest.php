@@ -27,7 +27,7 @@ beforeEach(fn () => Event::fake());
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeTicket(User $requester): Ticket
+function makeMergeTicket(User $requester): Ticket
 {
     return Ticket::create([
         'ulid'         => Str::ulid(),
@@ -56,8 +56,8 @@ function addComments(Ticket $ticket, int $count, User $author): void
 
 test('merge moves all source comments to target ticket', function () {
     $user   = User::factory()->create();
-    $target = makeTicket($user);
-    $source = makeTicket($user);
+    $target = makeMergeTicket($user);
+    $source = makeMergeTicket($user);
 
     addComments($target, 2, $user);
     addComments($source, 3, $user);
@@ -75,8 +75,8 @@ test('merge moves all source comments to target ticket', function () {
 
 test('merge sets source status to closed', function () {
     $user   = User::factory()->create();
-    $target = makeTicket($user);
-    $source = makeTicket($user);
+    $target = makeMergeTicket($user);
+    $source = makeMergeTicket($user);
 
     $action = new MergeTicketsAction(new TicketStatusMachine);
     $action->execute($target, $source);
@@ -87,8 +87,8 @@ test('merge sets source status to closed', function () {
 
 test('merge sets merged_into_id on source to target id', function () {
     $user   = User::factory()->create();
-    $target = makeTicket($user);
-    $source = makeTicket($user);
+    $target = makeMergeTicket($user);
+    $source = makeMergeTicket($user);
 
     $action = new MergeTicketsAction(new TicketStatusMachine);
     $action->execute($target, $source);
@@ -99,8 +99,8 @@ test('merge sets merged_into_id on source to target id', function () {
 
 test('merge with zero comments on both tickets still closes source correctly', function () {
     $user   = User::factory()->create();
-    $target = makeTicket($user);
-    $source = makeTicket($user);
+    $target = makeMergeTicket($user);
+    $source = makeMergeTicket($user);
 
     $action = new MergeTicketsAction(new TicketStatusMachine);
     $action->execute($target, $source);
@@ -128,8 +128,8 @@ it('satisfies merge completeness for arbitrary comment counts', function () {
     $sourceCount = random_int(0, 10);
     $targetCount = random_int(0, 10);
 
-    $target = makeTicket($user);
-    $source = makeTicket($user);
+    $target = makeMergeTicket($user);
+    $source = makeMergeTicket($user);
 
     addComments($target, $targetCount, $user);
     addComments($source, $sourceCount, $user);

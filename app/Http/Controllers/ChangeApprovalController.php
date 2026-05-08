@@ -74,6 +74,10 @@ class ChangeApprovalController extends Controller
         ]);
 
         $approver = ChangeApprover::with('ticket')->findOrFail($approverId);
+        $user = $request->user();
+
+        $isAdmin = $user && ($user->hasRole('admin') || $user->role === 'admin');
+        abort_unless($isAdmin || (int) $approver->user_id === (int) $user?->id, 403);
 
         $this->recordDecision($approver, $validated['decision'], $validated['comment']);
 

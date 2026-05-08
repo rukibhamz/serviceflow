@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Tickets\MergeTicketsAction;
 use App\Models\Asset;
 use App\Models\Automation;
+use App\Models\Team;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Services\Asset\AssetImporter;
@@ -148,6 +149,7 @@ class WorkspaceActionController extends Controller
 
     public function saveRootCause(Request $request, Ticket $problem): RedirectResponse
     {
+        $this->authorizeTicketAccess($problem);
         abort_unless($problem->type === 'problem', 422);
 
         $data = $request->validate([
@@ -167,6 +169,8 @@ class WorkspaceActionController extends Controller
 
     public function linkIncident(Ticket $problem, Ticket $incident): RedirectResponse
     {
+        $this->authorizeTicketAccess($problem);
+        $this->authorizeTicketAccess($incident);
         abort_unless($problem->type === 'problem', 422);
         abort_unless($incident->type === 'incident', 422);
 
@@ -176,6 +180,7 @@ class WorkspaceActionController extends Controller
 
     public function unlinkIncident(Ticket $incident): RedirectResponse
     {
+        $this->authorizeTicketAccess($incident);
         abort_unless($incident->type === 'incident', 422);
 
         app(ProblemService::class)->unlinkIncident($incident);
@@ -184,6 +189,8 @@ class WorkspaceActionController extends Controller
 
     public function addTicketComment(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $data = $request->validate([
             'comment_body' => 'required|string|min:1',
             'is_internal' => 'nullable|boolean',
@@ -208,6 +215,8 @@ class WorkspaceActionController extends Controller
 
     public function updateTicketStatus(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $data = $request->validate([
             'status' => 'required|string|in:open,in_progress,pending,resolved,closed',
         ]);
@@ -221,6 +230,8 @@ class WorkspaceActionController extends Controller
 
     public function updateTicketPriority(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $data = $request->validate([
             'priority' => 'required|string|in:low,medium,high,critical',
         ]);
@@ -232,6 +243,8 @@ class WorkspaceActionController extends Controller
 
     public function updateTicketAssignee(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $data = $request->validate([
             'assignee_id' => 'nullable|integer|exists:users,id',
         ]);
@@ -243,6 +256,8 @@ class WorkspaceActionController extends Controller
 
     public function mergeTicket(Request $request, Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $data = $request->validate([
             'merge_target_ulid' => 'required|string',
         ]);
@@ -254,6 +269,7 @@ class WorkspaceActionController extends Controller
         if ($target->id === $ticket->id) {
             return back()->with('error', 'Cannot merge a ticket into itself.');
         }
+        $this->authorizeTicketAccess($target);
 
         app(MergeTicketsAction::class)->execute($target, $ticket);
 
@@ -266,6 +282,8 @@ class WorkspaceActionController extends Controller
 
     public function toggleTicketWatch(Ticket $ticket): RedirectResponse
     {
+        $this->authorizeTicketAccess($ticket);
+
         $service = app(TicketSubscriptionService::class);
         if ($ticket->watchers()->where('user_id', Auth::id())->exists()) {
             $service->unsubscribe($ticket, Auth::id());
@@ -274,6 +292,32 @@ class WorkspaceActionController extends Controller
         }
 
         return back();
+    }
+
+    private function authorizeTicketAccess(Ticket $ticket): void
+    {
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        if ($user->hasRole('admin') || $user->role === 'admin' || $user->hasRole('manager') || $user->role === 'manager') {
+            return;
+        }
+
+        $teamId = (int) ($ticket->team_id ?? 0);
+        $isRequester = (int) $ticket->requester_id === (int) $user->id;
+        $isAssignee = (int) ($ticket->assignee_id ?? 0) === (int) $user->id;
+
+        $isTeamLeadForTicketTeam = $teamId > 0 && Team::query()
+            ->where('id', $teamId)
+            ->where('team_lead_id', $user->id)
+            ->exists();
+
+        $isTeamMemberForTicketTeam = $teamId > 0 && Team::query()
+            ->where('id', $teamId)
+            ->whereHas('members', fn ($q) => $q->where('users.id', $user->id))
+            ->exists();
+
+        abort_unless($isRequester || $isAssignee || $isTeamLeadForTicketTeam || $isTeamMemberForTicketTeam, 403);
     }
 }
 

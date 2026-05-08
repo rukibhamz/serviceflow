@@ -8,10 +8,10 @@ use App\Models\Ticket;
 class TicketStatusMachine
 {
     const TRANSITIONS = [
-        'open'        => ['in_progress', 'pending', 'resolved', 'closed'],
-        'in_progress' => ['open', 'pending', 'resolved', 'closed'],
-        'pending'     => ['open', 'in_progress', 'resolved', 'closed'],
-        'resolved'    => ['open', 'in_progress', 'pending', 'closed'],
+        'open'        => ['in_progress'],
+        'in_progress' => ['pending', 'resolved'],
+        'pending'     => ['in_progress', 'resolved'],
+        'resolved'    => ['closed', 'open'],
         'closed'      => ['open'],
     ];
 

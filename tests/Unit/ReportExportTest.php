@@ -89,9 +89,9 @@ test('ReportBuilder::slaCompliance calculates compliance rate correctly', functi
     ]);
 
     // 2 compliant, 1 breached
-    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'response',   'breached' => false]);
-    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'resolution', 'breached' => false]);
-    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'response',   'breached' => true]);
+    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'response',   'due_at' => now()->addMinutes(60), 'breached' => false]);
+    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'resolution', 'due_at' => now()->addMinutes(120), 'breached' => false]);
+    SlaTimer::create(['ticket_id' => $ticket->id, 'sla_policy_id' => $policy->id, 'type' => 'response',   'due_at' => now()->subMinutes(10), 'breached' => true]);
 
     $builder = new ReportBuilder();
     $report  = $builder->slaCompliance();
@@ -103,9 +103,9 @@ test('ReportBuilder::slaCompliance calculates compliance rate correctly', functi
 
 test('ReportBuilder::csatScores returns correct average', function () {
     $requester = User::factory()->create();
-    $ticket    = Ticket::create([
+    $ticketA   = Ticket::create([
         'ulid'         => Str::ulid(),
-        'subject'      => 'CSAT test',
+        'subject'      => 'CSAT test A',
         'priority'     => 'low',
         'type'         => 'incident',
         'status'       => 'closed',
@@ -113,16 +113,53 @@ test('ReportBuilder::csatScores returns correct average', function () {
         'requester_id' => $requester->id,
     ]);
 
-    foreach ([4, 5, 3] as $rating) {
-        CsatSurvey::create([
-            'ticket_id'    => $ticket->id,
-            'requester_id' => $requester->id,
-            'token'        => Str::random(40),
-            'rating'       => $rating,
-            'sent_at'      => now(),
-            'responded_at' => now(),
-        ]);
-    }
+    $ticketB = Ticket::create([
+        'ulid'         => Str::ulid(),
+        'subject'      => 'CSAT test B',
+        'priority'     => 'low',
+        'type'         => 'incident',
+        'status'       => 'closed',
+        'source'       => 'web',
+        'requester_id' => $requester->id,
+    ]);
+
+    $requesterTwo = User::factory()->create();
+    $ticketC = Ticket::create([
+        'ulid'         => Str::ulid(),
+        'subject'      => 'CSAT test C',
+        'priority'     => 'low',
+        'type'         => 'incident',
+        'status'       => 'closed',
+        'source'       => 'web',
+        'requester_id' => $requesterTwo->id,
+    ]);
+
+    CsatSurvey::create([
+        'ticket_id'    => $ticketA->id,
+        'requester_id' => $requester->id,
+        'token'        => Str::random(40),
+        'rating'       => 4,
+        'sent_at'      => now(),
+        'responded_at' => now(),
+    ]);
+
+    CsatSurvey::create([
+        'ticket_id'    => $ticketB->id,
+        'requester_id' => $requester->id,
+        'token'        => Str::random(40),
+        'rating'       => 5,
+        'sent_at'      => now(),
+        'responded_at' => now(),
+    ]);
+
+    CsatSurvey::create([
+        'ticket_id'    => $ticketC->id,
+        'requester_id' => $requesterTwo->id,
+        'token'        => Str::random(40),
+        'rating'       => 3,
+        'sent_at'      => now(),
+        'responded_at' => now(),
+    ]);
 
     $builder = new ReportBuilder();
     $report  = $builder->csatScores();

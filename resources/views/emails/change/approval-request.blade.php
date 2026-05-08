@@ -56,11 +56,11 @@ body{font-family:sans-serif;background:#f3f4f6;margin:0;padding:20px}
     </dl>
 
     <div style="text-align:center;margin:24px 0">
-        <a href="{{ url('/change-approval/' . $approver->token . '/approve') }}" class="btn btn-approve">
-            ✅ Approve
+        <a href="{{ url('/change-approval/' . $approver->token) }}" class="btn btn-approve">
+            ✅ Review & Approve
         </a>
-        <a href="{{ url('/change-approval/' . $approver->token . '/reject') }}" class="btn btn-reject">
-            ❌ Reject
+        <a href="{{ url('/change-approval/' . $approver->token) }}" class="btn btn-reject">
+            ❌ Review & Reject
         </a>
     </div>
 

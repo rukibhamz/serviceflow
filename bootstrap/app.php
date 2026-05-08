@@ -27,8 +27,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'install/*',
-            'logout',
-            'login',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

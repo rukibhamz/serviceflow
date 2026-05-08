@@ -28,8 +28,8 @@ class CsatService
             ['token' => Str::random(40), 'sent_at' => now()],
         );
 
-        // Only send the email if this is a fresh record (not already responded)
-        if ($survey->responded_at === null) {
+        // Queue exactly once for idempotent sendSurvey calls.
+        if ($survey->wasRecentlyCreated) {
             Mail::to($requester->email)->queue(new CsatSurveyMail($ticket, $survey));
         }
 

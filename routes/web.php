@@ -85,7 +85,7 @@ Route::middleware('guest')->prefix('auth')->name('auth.sso.')->group(function ()
     Route::get('/{provider}/callback', [App\Http\Controllers\SocialAuthController::class, 'callback'])->name('callback');
 });
 
-Route::match(['GET', 'POST'], '/logout', function () {
+Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
@@ -416,8 +416,8 @@ Route::post('/invite/{token}', [App\Http\Controllers\InvitationController::class
 // Change approval (public — token-authenticated via email)
 Route::prefix('change-approval')->name('change.approval.')->group(function () {
     Route::get('/{token}', [App\Http\Controllers\ChangeApprovalController::class, 'show'])->name('show');
-    Route::get('/{token}/approve', [App\Http\Controllers\ChangeApprovalController::class, 'quickApprove'])->name('quick-approve');
-    Route::get('/{token}/reject', [App\Http\Controllers\ChangeApprovalController::class, 'quickReject'])->name('quick-reject');
+    Route::post('/{token}/approve', [App\Http\Controllers\ChangeApprovalController::class, 'quickApprove'])->name('quick-approve');
+    Route::post('/{token}/reject', [App\Http\Controllers\ChangeApprovalController::class, 'quickReject'])->name('quick-reject');
     Route::post('/{token}', [App\Http\Controllers\ChangeApprovalController::class, 'submit'])->name('submit');
 });
 
