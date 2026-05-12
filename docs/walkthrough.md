@@ -225,3 +225,9 @@ REVERB_APP_ID=serviceflow
 REVERB_APP_KEY=...
 REVERB_APP_SECRET=...
 ```
+
+---
+
+## Upgrading existing deployments
+
+Pulling new code does not update the database. After each deploy, run `php artisan migrate --force` on every environment, or verify pending migrations with `php artisan serviceflow:upgrade-check`. Contributor guidelines for backward-compatible migrations are in [UPGRADE.md](./UPGRADE.md).

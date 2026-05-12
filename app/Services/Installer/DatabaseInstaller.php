@@ -36,6 +36,7 @@ class DatabaseInstaller
         $this->writeEnvValue('SESSION_DRIVER', 'database');
 
         Artisan::call('config:clear');
+        // First-time schema only. Existing deployments upgrade with `php artisan migrate --force` (see docs/UPGRADE.md).
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
     }
