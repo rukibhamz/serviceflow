@@ -12,30 +12,32 @@ class ServiceCatalogueService
     {
         $configItems = config('catalogue.items', []);
         $allowedTeamIds = $this->resolveAllowedTeamIds($user);
-        $dbItems = ServiceCatalogueItem::query()
-            ->where('is_active', true)
-            ->when($user?->tenant_id, fn ($q) => $q->where(function ($nested) use ($user) {
-                $nested->whereNull('tenant_id')->orWhere('tenant_id', $user->tenant_id);
-            }))
-            ->when($user, fn ($q) => $q->where(function ($nested) use ($allowedTeamIds) {
-                $nested->whereNull('team_id');
-                if (! empty($allowedTeamIds)) {
-                    $nested->orWhereIn('team_id', $allowedTeamIds);
-                }
-            }))
-            ->orderBy('name')
-            ->get()
-            ->map(function (ServiceCatalogueItem $item): array {
-                return [
-                    'id' => $item->slug,
-                    'name' => $item->name,
-                    'description' => $item->description,
-                    'type' => $item->type,
-                    'priority' => $item->priority,
-                    'fields' => is_array($item->fields) ? $item->fields : [],
-                ];
-            })
-            ->all();
+        $dbItems = ServiceCatalogueItem::isAvailable()
+            ? ServiceCatalogueItem::query()
+                ->where('is_active', true)
+                ->when($user?->tenant_id, fn ($q) => $q->where(function ($nested) use ($user) {
+                    $nested->whereNull('tenant_id')->orWhere('tenant_id', $user->tenant_id);
+                }))
+                ->when($user, fn ($q) => $q->where(function ($nested) use ($allowedTeamIds) {
+                    $nested->whereNull('team_id');
+                    if (! empty($allowedTeamIds)) {
+                        $nested->orWhereIn('team_id', $allowedTeamIds);
+                    }
+                }))
+                ->orderBy('name')
+                ->get()
+                ->map(function (ServiceCatalogueItem $item): array {
+                    return [
+                        'id' => $item->slug,
+                        'name' => $item->name,
+                        'description' => $item->description,
+                        'type' => $item->type,
+                        'priority' => $item->priority,
+                        'fields' => is_array($item->fields) ? $item->fields : [],
+                    ];
+                })
+                ->all()
+            : [];
 
         return array_values(array_merge($dbItems, $configItems));
     }

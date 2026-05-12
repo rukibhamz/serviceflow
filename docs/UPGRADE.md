@@ -4,6 +4,8 @@ ServiceFlow applies schema changes through Laravel migrations. **Pulling new cod
 
 This keeps upgrades safe and **backward compatible at the database layer**: migrations are written to apply cleanly on top of older schemas (additive changes, defaults, nullable columns) so that `git pull` followed by `php artisan migrate --force` brings the database up to date without requiring a fresh install.
 
+The application avoids fatal errors when a new table is missing (for example before operators run `migrate`): affected areas show empty statistics or redirect with a flash message until the schema is upgraded.
+
 ---
 
 ## Standard upgrade procedure
@@ -21,6 +23,8 @@ Run these on the server (maintenance window optional):
 7. Bring the app back: `php artisan up`
 
 Automate step 5 in your deployment pipeline so it cannot be skipped.
+
+**Shared hosting / cPanel without SSH:** see [cpanel-migrations.md](./cpanel-migrations.md) (cron, optional token-based POST, or migrate from your PC over Remote MySQL).
 
 ---
 

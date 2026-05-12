@@ -13,6 +13,10 @@ class ServiceCatalogueItemController extends Controller
 {
     public function index(string $portal)
     {
+        if (! ServiceCatalogueItem::isAvailable()) {
+            return view($portal.'.service-catalogue.index', ['items' => collect()]);
+        }
+
         $user = auth()->user();
         $teamIds = $this->allowedTeamIds($user, $portal);
 
@@ -31,6 +35,10 @@ class ServiceCatalogueItemController extends Controller
 
     public function create(string $portal)
     {
+        if ($redirect = $this->redirectUnlessCatalogueReady($portal)) {
+            return $redirect;
+        }
+
         $user = auth()->user();
         $teamIds = $this->allowedTeamIds($user, $portal);
 
@@ -44,6 +52,10 @@ class ServiceCatalogueItemController extends Controller
 
     public function store(Request $request, string $portal): RedirectResponse
     {
+        if ($redirect = $this->redirectUnlessCatalogueReady($portal)) {
+            return $redirect;
+        }
+
         $user = auth()->user();
         $teamIds = $this->allowedTeamIds($user, $portal);
 
@@ -153,6 +165,17 @@ class ServiceCatalogueItemController extends Controller
         $item->delete();
 
         return back()->with('success', 'Service catalogue item deleted.');
+    }
+
+    private function redirectUnlessCatalogueReady(string $portal): ?RedirectResponse
+    {
+        if (ServiceCatalogueItem::isAvailable()) {
+            return null;
+        }
+
+        return redirect()
+            ->route($portal.'.dashboard')
+            ->with('error', 'Database upgrade required: run php artisan migrate --force on the server.');
     }
 
     private function parseFields(?string $json): array

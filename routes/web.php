@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InstallerController;
+use App\Http\Controllers\MigrateWebController;
 use App\Http\Controllers\PortalController;
 use Illuminate\Support\Facades\Route;
 
@@ -460,3 +461,10 @@ Route::prefix('install')->group(function () {
     Route::post('/account', [InstallerController::class, 'storeAccount'])->name('installer.account.store');
     Route::get('/finish', [InstallerController::class, 'finish'])->name('installer.finish');
 });
+
+// One-shot migrations via HTTPS when SSH is unavailable (set MIGRATE_WEB_TOKEN in .env; disable by clearing it).
+if (! empty(config('serviceflow.migrate_web_token'))) {
+    Route::post('_serviceflow/migrate', MigrateWebController::class)
+        ->middleware(['throttle:10,1', 'migrate.token'])
+        ->name('serviceflow.migrate.web');
+}

@@ -18,7 +18,9 @@ class ManagerController extends Controller
             'open_tickets' => Ticket::whereNotIn('status', ['resolved', 'closed'])->count(),
             'changes' => Ticket::where('type', 'change')->count(),
             'problems' => Ticket::where('type', 'problem')->count(),
-            'catalogue_active' => ServiceCatalogueItem::query()->where('is_active', true)->count(),
+            'catalogue_active' => ServiceCatalogueItem::isAvailable()
+                ? ServiceCatalogueItem::query()->where('is_active', true)->count()
+                : 0,
         ];
 
         $recentTickets = Ticket::with(['requester', 'team'])
@@ -26,11 +28,13 @@ class ManagerController extends Controller
             ->take(12)
             ->get();
 
-        $recentCatalogue = ServiceCatalogueItem::query()
-            ->with('team')
-            ->latest('id')
-            ->take(8)
-            ->get();
+        $recentCatalogue = ServiceCatalogueItem::isAvailable()
+            ? ServiceCatalogueItem::query()
+                ->with('team')
+                ->latest('id')
+                ->take(8)
+                ->get()
+            : collect();
 
         return view('manager.dashboard', compact('stats', 'recentTickets', 'recentCatalogue'));
     }

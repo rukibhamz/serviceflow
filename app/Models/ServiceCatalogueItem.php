@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 
 class ServiceCatalogueItem extends Model
 {
@@ -36,6 +37,15 @@ class ServiceCatalogueItem extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * True when the catalogue migration has been applied (table exists).
+     * Deployments may pull code before `php artisan migrate` runs on older databases.
+     */
+    public static function isAvailable(): bool
+    {
+        return Schema::hasTable((new static)->getTable());
     }
 }
 

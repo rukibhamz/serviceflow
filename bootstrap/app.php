@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'migrate.token' => \App\Http\Middleware\VerifyMigrateWebToken::class,
         ]);
 
         // Run install check on every web request
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'install/*',
+            '_serviceflow/migrate',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

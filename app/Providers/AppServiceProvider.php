@@ -8,11 +8,13 @@ use App\Events\TicketCreated;
 use App\Events\TicketUpdated;
 use App\Listeners\RunAutomationEngine;
 use App\Models\KnowledgeArticle;
+use App\Models\ServiceCatalogueItem;
 use App\Models\Ticket;
 use App\Observers\KnowledgeArticleObserver;
 use App\Observers\TicketObserver;
 use App\Services\SettingService;
 use App\View\Composers\SettingsComposer;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +63,26 @@ class AppServiceProvider extends ServiceProvider
 
         Livewire::setScriptRoute(function ($handle) {
             return Route::get('/livewire/livewire.js', $handle)->middleware('web')->name('livewire.js');
+        });
+
+        // Service catalogue: avoid implicit model binding hitting MySQL before migrations run on upgraded installs.
+        Route::bind('item', function (mixed $value) {
+            $route = request()->route();
+            if ($route === null || ! str_contains($route->uri(), 'service-catalogue')) {
+                return ServiceCatalogueItem::query()->whereKey($value)->firstOrFail();
+            }
+
+            if (! ServiceCatalogueItem::isAvailable()) {
+                $portal = $route->defaults['portal'] ?? 'admin';
+                throw new HttpResponseException(
+                    redirect()->route("{$portal}.dashboard")->with(
+                        'error',
+                        'Database upgrade required: run php artisan migrate --force on the server.'
+                    )
+                );
+            }
+
+            return ServiceCatalogueItem::query()->whereKey($value)->firstOrFail();
         });
     }
 

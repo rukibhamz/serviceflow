@@ -20,10 +20,12 @@ class TeamLeadController extends Controller
             'open_tickets' => Ticket::whereIn('team_id', $teamIds)->whereNotIn('status', ['resolved', 'closed'])->count(),
             'changes' => Ticket::whereIn('team_id', $teamIds)->where('type', 'change')->count(),
             'problems' => Ticket::whereIn('team_id', $teamIds)->where('type', 'problem')->count(),
-            'catalogue_active' => ServiceCatalogueItem::query()
-                ->where('is_active', true)
-                ->whereIn('team_id', $teamIds)
-                ->count(),
+            'catalogue_active' => ServiceCatalogueItem::isAvailable()
+                ? ServiceCatalogueItem::query()
+                    ->where('is_active', true)
+                    ->whereIn('team_id', $teamIds)
+                    ->count()
+                : 0,
         ];
 
         $recentTickets = Ticket::with(['requester', 'team'])
@@ -32,12 +34,14 @@ class TeamLeadController extends Controller
             ->take(10)
             ->get();
 
-        $recentCatalogue = ServiceCatalogueItem::query()
-            ->with('team')
-            ->whereIn('team_id', $teamIds)
-            ->latest('id')
-            ->take(8)
-            ->get();
+        $recentCatalogue = ServiceCatalogueItem::isAvailable()
+            ? ServiceCatalogueItem::query()
+                ->with('team')
+                ->whereIn('team_id', $teamIds)
+                ->latest('id')
+                ->take(8)
+                ->get()
+            : collect();
 
         return view('team-lead.dashboard', compact('stats', 'recentTickets', 'recentCatalogue'));
     }
