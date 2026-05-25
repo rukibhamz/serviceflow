@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'migrate.token' => \App\Http\Middleware\VerifyMigrateWebToken::class,
         ]);
 
+        // File sessions during install / before sessions table exists (must run before StartSession)
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ConfigureSessionDriver::class,
+        ]);
+
         // Run install check on every web request
         $middleware->web(append: [
             \App\Http\Middleware\EnsureAppIsInstalled::class,

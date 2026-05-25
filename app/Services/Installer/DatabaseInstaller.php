@@ -3,6 +3,7 @@
 namespace App\Services\Installer;
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use PDO;
 use PDOException;
 
@@ -42,7 +43,10 @@ class DatabaseInstaller
     /** Switch session storage to the database after installation is fully complete. */
     public function finalizeSessionDriver(): void
     {
-        $this->writeEnvValue('SESSION_DRIVER', 'database');
+        if (Schema::hasTable(config('session.table', 'sessions'))) {
+            $this->writeEnvValue('SESSION_DRIVER', 'database');
+        }
+
         Artisan::call('config:clear');
     }
 
