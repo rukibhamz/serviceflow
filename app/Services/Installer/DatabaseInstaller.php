@@ -2,6 +2,7 @@
 
 namespace App\Services\Installer;
 
+use App\Services\SettingService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use PDO;
@@ -38,6 +39,10 @@ class DatabaseInstaller
         // First-time schema only. Existing deployments upgrade with `php artisan migrate --force` (see docs/UPGRADE.md).
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
+
+        SettingService::purgeCachedData();
+        app(SettingService::class)->resetBrandingToDefaults();
+        Artisan::call('cache:clear');
     }
 
     /** Switch session storage to the database after installation is fully complete. */

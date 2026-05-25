@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class SettingService
@@ -23,6 +25,56 @@ class SettingService
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->all()[$key] ?? $default;
+    }
+
+    /** Default branding for fresh installs (must not inherit a developer machine's settings). */
+    public static function defaultBranding(): array
+    {
+        return [
+            'brand_name'    => config('app.name', 'ServiceFlow'),
+            'brand_logo'    => null,
+            'brand_favicon' => null,
+            'theme_preset'  => 'blue',
+            'theme_primary' => '#1a4fa0',
+            'theme_accent'  => '#f97316',
+        ];
+    }
+
+    /**
+     * Reset branding in the database and remove any uploaded logo/favicon.
+     * Used by the web installer so deploys never show a previous local tenant name.
+     */
+    public function resetBrandingToDefaults(): void
+    {
+        if (! Schema::hasTable('settings')) {
+            return;
+        }
+
+        foreach (['brand_logo', 'brand_favicon'] as $key) {
+            $path = Setting::query()->where('key', $key)->value('value');
+            if ($path && Storage::disk('uploads')->exists($path)) {
+                Storage::disk('uploads')->delete($path);
+            }
+        }
+
+        $this->set(self::defaultBranding());
+        self::purgeCachedData();
+    }
+
+    /** Clear Laravel cache and on-disk file cache (local dev artifacts must not ship). */
+    public static function purgeCachedData(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+
+        $cacheDir = storage_path('framework/cache/data');
+        if (is_dir($cacheDir)) {
+            foreach (File::allFiles($cacheDir) as $file) {
+                if ($file->getFilename() === '.gitkeep') {
+                    continue;
+                }
+                File::delete($file->getPathname());
+            }
+        }
     }
 
     /** Persist a batch of settings and bust the cache. */

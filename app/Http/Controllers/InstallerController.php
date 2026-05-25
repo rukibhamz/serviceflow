@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\Installer\CpanelPipeInstaller;
 use App\Services\Installer\DatabaseInstaller;
 use App\Services\Installer\EnvironmentChecker;
+use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -113,6 +114,8 @@ class InstallerController extends Controller
         $dbInstaller = new DatabaseInstaller();
         $dbInstaller->writeEnvValue('APP_INSTALLED', 'true');
         $dbInstaller->finalizeSessionDriver();
+        app(SettingService::class)->resetBrandingToDefaults();
+        SettingService::purgeCachedData();
         file_put_contents(storage_path('install.lock'), 'Installed on ' . now()->toDateTimeString());
 
         $pipeInstaller = new CpanelPipeInstaller();
