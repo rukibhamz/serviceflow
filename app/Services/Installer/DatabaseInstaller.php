@@ -27,18 +27,23 @@ class DatabaseInstaller
     {
         $this->writeEnvValue('DB_CONNECTION', $config['connection'] ?? 'mysql');
         $this->writeEnvValue('DB_HOST', $config['host'] ?? '127.0.0.1');
-        $this->writeEnvValue('DB_PORT', $config['port'] ?? '3306');
+        $this->writeEnvValue('DB_PORT', (string) ($config['port'] ?? '3306'));
         $this->writeEnvValue('DB_DATABASE', $config['database'] ?? '');
         $this->writeEnvValue('DB_USERNAME', $config['username'] ?? '');
         $this->writeEnvValue('DB_PASSWORD', $config['password'] ?? '');
 
-        // Switch session driver to database now that DB is configured
-        $this->writeEnvValue('SESSION_DRIVER', 'database');
-
         Artisan::call('config:clear');
+
         // First-time schema only. Existing deployments upgrade with `php artisan migrate --force` (see docs/UPGRADE.md).
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('db:seed', ['--force' => true]);
+    }
+
+    /** Switch session storage to the database after installation is fully complete. */
+    public function finalizeSessionDriver(): void
+    {
+        $this->writeEnvValue('SESSION_DRIVER', 'database');
+        Artisan::call('config:clear');
     }
 
     public function writeEnvValue(string $key, string $value): void
@@ -55,21 +60,32 @@ class DatabaseInstaller
         }
 
         $contents = file_get_contents($envPath);
+        $line = $key.'='.$this->escapeEnvValue($value);
 
-        // Escape value if it contains spaces or special characters
-        $escapedValue = str_contains($value, ' ') ? "\"{$value}\"" : $value;
-
-        if (preg_match("/^{$key}=/m", $contents)) {
-            $contents = preg_replace(
-                "/^{$key}=.*/m",
-                "{$key}={$escapedValue}",
+        if (preg_match('/^'.preg_quote($key, '/').'=/m', $contents)) {
+            $contents = preg_replace_callback(
+                '/^'.preg_quote($key, '/').'=.*$/m',
+                static fn () => $line,
                 $contents
             );
         } else {
-            $contents .= PHP_EOL . "{$key}={$escapedValue}";
+            $contents = rtrim($contents).PHP_EOL.$line.PHP_EOL;
         }
 
         file_put_contents($envPath, $contents);
+    }
+
+    private function escapeEnvValue(string $value): string
+    {
+        if ($value === '') {
+            return '';
+        }
+
+        if (preg_match('/[\s#="$\'\\\\]/', $value)) {
+            return '"'.str_replace(['\\', '"'], ['\\\\', '\\"'], $value).'"';
+        }
+
+        return $value;
     }
 
     private function buildDsn(array $config): string

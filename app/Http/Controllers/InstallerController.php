@@ -65,7 +65,20 @@ class InstallerController extends Controller
             return back()->withErrors(['connection' => 'Could not connect to the database. Please check your credentials.'])->withInput();
         }
 
-        $installer->install($validated);
+        set_time_limit(300);
+
+        try {
+            $installer->install($validated);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withErrors([
+                    'connection' => 'Database setup failed: '.$e->getMessage()
+                        .' Check _internal_storage/logs/laravel.log on the server for details.',
+                ])
+                ->withInput();
+        }
 
         return redirect()->route('installer.account');
     }
@@ -99,6 +112,7 @@ class InstallerController extends Controller
     {
         $dbInstaller = new DatabaseInstaller();
         $dbInstaller->writeEnvValue('APP_INSTALLED', 'true');
+        $dbInstaller->finalizeSessionDriver();
         file_put_contents(storage_path('install.lock'), 'Installed on ' . now()->toDateTimeString());
 
         $pipeInstaller = new CpanelPipeInstaller();
