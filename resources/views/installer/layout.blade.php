@@ -26,8 +26,9 @@
             $steps = [
                 1 => ['label' => 'Environment', 'route' => 'installer.index'],
                 2 => ['label' => 'Database',    'route' => 'installer.database'],
-                3 => ['label' => 'Admin Account','route' => 'installer.account'],
-                4 => ['label' => 'Finish',       'route' => 'installer.finish'],
+                3 => ['label' => 'Branding',    'route' => 'installer.branding'],
+                4 => ['label' => 'Admin Account','route' => 'installer.account'],
+                5 => ['label' => 'Finish',       'route' => 'installer.finish'],
             ];
             $currentStep = $currentStep ?? 1;
         @endphp

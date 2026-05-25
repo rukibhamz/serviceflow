@@ -1,5 +1,5 @@
 @extends('installer.layout')
-@php $currentStep = 4; @endphp
+@php $currentStep = 5; @endphp
 
 @section('content')
 <div class="text-center mb-6">

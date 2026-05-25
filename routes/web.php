@@ -457,6 +457,8 @@ Route::prefix('install')->group(function () {
     Route::get('/database', [InstallerController::class, 'database'])->name('installer.database');
     Route::post('/database/test', [InstallerController::class, 'testDatabase'])->name('installer.database.test');
     Route::post('/database', [InstallerController::class, 'storeDatabase'])->name('installer.database.store');
+    Route::get('/branding', [InstallerController::class, 'branding'])->name('installer.branding');
+    Route::post('/branding', [InstallerController::class, 'storeBranding'])->name('installer.branding.store');
     Route::get('/account', [InstallerController::class, 'account'])->name('installer.account');
     Route::post('/account', [InstallerController::class, 'storeAccount'])->name('installer.account.store');
     Route::get('/finish', [InstallerController::class, 'finish'])->name('installer.finish');

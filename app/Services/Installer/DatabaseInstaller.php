@@ -41,7 +41,6 @@ class DatabaseInstaller
         Artisan::call('db:seed', ['--force' => true]);
 
         SettingService::purgeCachedData();
-        app(SettingService::class)->resetBrandingToDefaults();
         Artisan::call('cache:clear');
     }
 

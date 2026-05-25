@@ -1,5 +1,5 @@
 @extends('installer.layout')
-@php $currentStep = 3; @endphp
+@php $currentStep = 4; @endphp
 
 @section('content')
 <h2 class="text-xl font-semibold text-gray-800 mb-4">Create Admin Account</h2>
@@ -41,7 +41,7 @@
     </div>
 
     <div class="flex justify-between pt-2">
-        <a href="{{ route('installer.database') }}" class="text-sm text-gray-500 hover:underline self-center">← Back</a>
+        <a href="{{ route('installer.branding') }}" class="text-sm text-gray-500 hover:underline self-center">← Back</a>
         <button type="submit"
                 class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">
             Create Account →

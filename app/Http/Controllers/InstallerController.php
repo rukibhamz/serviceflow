@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class InstallerController extends Controller
@@ -81,11 +82,72 @@ class InstallerController extends Controller
                 ->withInput();
         }
 
+        return redirect()->route('installer.branding');
+    }
+
+    public function branding(): View|RedirectResponse
+    {
+        if (! Schema::hasTable('settings')) {
+            return redirect()->route('installer.database')
+                ->withErrors(['connection' => 'Complete database setup before configuring branding.']);
+        }
+
+        $settings = app(SettingService::class);
+        $all = $settings->all();
+        $presets = SettingService::presets();
+
+        return view('installer.branding', [
+            'presets'    => $presets,
+            'curName'    => old('brand_name', $all['brand_name'] ?? config('app.name', 'ServiceFlow')),
+            'curPreset'  => old('theme_preset', $all['theme_preset'] ?? 'blue'),
+            'curPrimary' => old('theme_primary', $all['theme_primary'] ?? '#1a4fa0'),
+            'curAccent'  => old('theme_accent', $all['theme_accent'] ?? '#f97316'),
+        ]);
+    }
+
+    public function storeBranding(Request $request, SettingService $settings): RedirectResponse
+    {
+        if (! Schema::hasTable('settings')) {
+            return redirect()->route('installer.database')
+                ->withErrors(['connection' => 'Complete database setup before configuring branding.']);
+        }
+
+        $data = $request->validate([
+            'brand_name'    => ['required', 'string', 'max:80'],
+            'theme_preset'  => ['required', 'string', 'in:'.implode(',', array_keys(SettingService::presets()))],
+            'theme_primary' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'theme_accent'  => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ]);
+
+        if ($request->hasFile('brand_logo')) {
+            $request->validate(['brand_logo' => ['image', 'max:2048']]);
+            $settings->uploadLogo($request->file('brand_logo'));
+        }
+
+        if ($request->hasFile('brand_favicon')) {
+            $request->validate(['brand_favicon' => ['file', 'mimes:ico,png,jpg,jpeg,svg', 'max:512']]);
+            $settings->uploadFavicon($request->file('brand_favicon'));
+        }
+
+        $settings->set([
+            'brand_name'    => $data['brand_name'],
+            'theme_preset'  => $data['theme_preset'],
+            'theme_primary' => $data['theme_primary'],
+            'theme_accent'  => $data['theme_accent'],
+        ]);
+
+        $installer = new DatabaseInstaller();
+        $installer->writeEnvValue('APP_NAME', $data['brand_name']);
+
         return redirect()->route('installer.account');
     }
 
-    public function account(): View
+    public function account(): View|RedirectResponse
     {
+        if (! Schema::hasTable('settings')) {
+            return redirect()->route('installer.database');
+        }
+
         return view('installer.account');
     }
 
@@ -114,7 +176,6 @@ class InstallerController extends Controller
         $dbInstaller = new DatabaseInstaller();
         $dbInstaller->writeEnvValue('APP_INSTALLED', 'true');
         $dbInstaller->finalizeSessionDriver();
-        app(SettingService::class)->resetBrandingToDefaults();
         SettingService::purgeCachedData();
         file_put_contents(storage_path('install.lock'), 'Installed on ' . now()->toDateTimeString());
 
