@@ -18,6 +18,7 @@ class Ticket extends Model implements HasMedia
     use HasFactory, SoftDeletes, LogsActivity, InteractsWithMedia;
 
     protected $fillable = [
+        'tenant_id',
         'ulid',
         'subject',
         'description',

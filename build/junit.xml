@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Tests\Feature\ExampleTest" file="Example (Tests\Feature\Example)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="4.513191">
+    <testcase name="The application handles unknown health endpoint" file="Example (Tests\Feature\Example)::The application handles unknown health endpoint" class="Tests\Feature\ExampleTest" classname="Tests.Feature.ExampleTest" assertions="1" time="4.513191"/>
+  </testsuite>
+</testsuites>

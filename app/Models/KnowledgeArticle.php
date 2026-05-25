@@ -13,6 +13,7 @@ class KnowledgeArticle extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'tenant_id',
         'title',
         'slug',
         'body',

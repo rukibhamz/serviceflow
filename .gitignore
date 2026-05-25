@@ -39,8 +39,9 @@ yarn-error.log
 /bootstrap/cache/*.php
 /bootstrap/cache/*.json
 
-# Local uploads and ad-hoc assets
-/uploads/
+# Local uploads and ad-hoc assets (branding logos, favicons, etc.)
+/uploads/**
+!/uploads/.gitkeep
 /tmp/
 /temp/
 

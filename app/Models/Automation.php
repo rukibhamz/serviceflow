@@ -11,6 +11,7 @@ class Automation extends Model
     use HasFactory;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'trigger_event',
         'conditions',

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,12 +27,14 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'tenant_id'         => Tenant::factory(),
+            'name'              => fake()->name(),
+            'email'             => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-            'is_active' => true,
+            'password'          => static::$password ??= Hash::make('password'),
+            'remember_token'    => Str::random(10),
+            'role'              => 'agent',
+            'is_active'         => true,
         ];
     }
 
@@ -40,6 +45,56 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Admin role state.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Agent role state.
+     */
+    public function agent(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'agent',
+        ]);
+    }
+
+    /**
+     * Manager role state.
+     */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'manager',
+        ]);
+    }
+
+    /**
+     * Team lead role state.
+     */
+    public function teamLead(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'team_lead',
+        ]);
+    }
+
+    /**
+     * End user (portal user) role state.
+     */
+    public function endUser(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'end_user',
         ]);
     }
 }

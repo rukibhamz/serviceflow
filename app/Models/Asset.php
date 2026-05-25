@@ -15,6 +15,7 @@ class Asset extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
+        'tenant_id',
         'name',
         'asset_tag',
         'type',

@@ -1,4 +1,0 @@
-[2026-03-23 12:26:36] POST /serviceflow/livewire/update
-[2026-03-23 12:27:20] POST /serviceflow/login
-{"time":"2026-03-23 12:30:01","method":"POST","uri":"\/serviceflow\/","base_url":"\/serviceflow","path":"\/"}
-{"time":"2026-03-23 12:30:02","method":"POST","uri":"\/serviceflow\/livewire\/update","base_url":"\/serviceflow","path":"\/livewire\/update"}
